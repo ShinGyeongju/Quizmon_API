@@ -6,14 +6,28 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
-@NoArgsConstructor
-//@AllArgsConstructor
-//@Builder
 public class UserDTO {
-    @NotBlank
-    private String id;
+    @Getter
+    @NoArgsConstructor
+    public static class CreateRequest {
+        @NotBlank(message = "유효하지 않은 ID입니다.")
+        private String id;
 
-    @NotBlank
-    private String password;
+        @NotBlank(message = "유효하지 않은 Password입니다.")
+        private String password;
+
+        public UserEntity toEntity() {
+            return UserEntity.builder()
+                    .id(id)
+                    .password(password)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class CreateResponse {
+        private String id;
+    }
+
 }

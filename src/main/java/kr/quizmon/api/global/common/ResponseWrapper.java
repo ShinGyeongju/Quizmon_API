@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class CommonResponse {
+public class ResponseWrapper {
     private int code;
     private String message;
     private Object result;
