@@ -25,9 +25,29 @@ public class UserDTO {
     }
 
     @Getter
-    @Builder
-    public static class CreateResponse {
-        private String id;
+    @NoArgsConstructor
+    public static class PutRequest {
+        @NotBlank
+        private String oldPassword;
+
+        @NotBlank
+        private String newPassword;
+
+        // TODO: toEntity
     }
 
+    @Getter
+    @NoArgsConstructor
+    public static class DeleteRequest {
+        @NotBlank
+        private String password;
+
+        // TODO: toEntity
+    }
+
+    @Getter
+    @Builder
+    public static class CommonResponse {
+        private String id;
+    }
 }

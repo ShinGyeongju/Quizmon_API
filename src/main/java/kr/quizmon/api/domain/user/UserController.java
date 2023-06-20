@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,13 +24,13 @@ public class UserController {
      * @return ResponseEntity<ResponseWrapper>
      */
     @PostMapping("/v1")
-    public ResponseEntity<ResponseWrapper> joinUser(@Valid @RequestBody UserDTO.CreateRequest requestDto, BindingResult bindingResult) {
+    public ResponseEntity<ResponseWrapper> postUser(@Valid @RequestBody UserDTO.CreateRequest requestDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<ObjectError> errors = bindingResult.getAllErrors();
             throw new CustomApiException(ErrorCode.INVALID_VALUE, errors.get(0).getDefaultMessage());
         }
 
-        UserDTO.CreateResponse responseBody = userService.createUser(requestDto);
+        UserDTO.CommonResponse responseBody = userService.createUser(requestDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(200)
@@ -44,5 +41,12 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 회원 수정 API
+     * @param
+     * @return
+     */
+    @PutMapping("/v1")
+    public ResponseEntity<ResponseWrapper> putUser(@Valid @RequestBody UserDTO.)
 
 }

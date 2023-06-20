@@ -1,19 +1,24 @@
 package kr.quizmon.api.global.common;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
-    // Common api handler
+
+    // Common handler
     @ExceptionHandler(CustomApiException.class)
-    public ResponseEntity<ResponseWrapper> apiHandler(CustomApiException ex) {
+    public ResponseEntity<ResponseWrapper> commonHandler(CustomApiException ex) {
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(ex.getCode())
                 .message(ex.getMessage())
                 .result(null)
                 .build();
+
+        log.error(ex.toString());
 
         return ResponseEntity.status(ex.getHttpStatus()).body(response);
     }
@@ -28,6 +33,8 @@ public class ErrorHandler {
                 .message(error.getMessage())
                 .result(null)
                 .build();
+
+        log.error(ex.toString());
 
         return ResponseEntity.status(error.getHttpStatus()).body(response);
     }
