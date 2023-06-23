@@ -19,9 +19,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO.CommonResponse createUser(UserDTO.CreateRequest requestDto) {
         // ID 중복 검사
-        userRepository.findById(requestDto.getId()).ifPresent(user -> {
-            throw new CustomApiException(ErrorCode.ALREADY_EXISTS_USER);
-        });
+        userRepository
+                .findById(requestDto.getId())
+                .ifPresent(user -> {
+                    throw new CustomApiException(ErrorCode.ALREADY_EXISTS_USER);
+                 });
 
         // Password encoding
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());

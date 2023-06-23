@@ -23,6 +23,7 @@ public class UserDTO {
             return UserEntity.builder()
                     .id(id)
                     .password(password)
+                    .authority("USER")
                     .build();
         }
     }

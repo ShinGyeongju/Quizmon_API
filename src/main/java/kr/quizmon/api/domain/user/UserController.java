@@ -19,6 +19,15 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
+
+    // TEST
+    @GetMapping()
+    public String testApi() {
+        return "TEST API";
+    }
+
+
+
     /**
      * 회원 가입
      */
