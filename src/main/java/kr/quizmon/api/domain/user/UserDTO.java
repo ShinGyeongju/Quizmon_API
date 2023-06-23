@@ -3,10 +3,7 @@ package kr.quizmon.api.domain.user;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 public class UserDTO {
     @Getter
@@ -19,6 +16,7 @@ public class UserDTO {
 
         @NotBlank(message = "유효하지 않은 Password입니다.")
         @Size(max = 20, message = "Password는 최대 20글자 까지만 가능합니다.")
+        @Setter
         private String password;
 
         public UserEntity toEntity() {
@@ -36,6 +34,7 @@ public class UserDTO {
         private String oldPassword;
 
         @NotBlank(message = "유효하지 않은 Password입니다.")
+        @Size(max = 20, message = "Password는 최대 20글자 까지만 가능합니다.")
         private String newPassword;
 
         // TODO: toEntity

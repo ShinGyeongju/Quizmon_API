@@ -24,7 +24,7 @@ public class UserEntity {
     @Column(name = "id")
     private String id;
 
-    @Column(name = "password")
+    @Column(name = "hashed_password")
     private String password;
 
     @Column(name = "authority")

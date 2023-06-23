@@ -12,6 +12,7 @@ public enum ErrorCode {
     ALREADY_EXISTS_USER(HttpStatus.BAD_REQUEST, 10401, "이미 존재하는 ID입니다."),
 
     // 401 Unauthorized
+    INVALID_USER(HttpStatus.UNAUTHORIZED, 11501, "유효하지 않은 사용자입니다."),
 
 
     // 404 Not Found
@@ -21,7 +22,7 @@ public enum ErrorCode {
 
 
     // 500 Internal Server Error
-    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 10500, "서버 내부 오류입니다.");
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 14500, "서버 내부 오류입니다.");
 
 
     private final HttpStatus httpStatus;
