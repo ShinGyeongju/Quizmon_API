@@ -14,17 +14,15 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/user")
+@RequestMapping("/api/v1/user")
 public class UserController {
     private final UserService userService;
 
     /**
      * 회원 가입 API
-     * @param UserDTO.CreateRequest
-     * @return ResponseEntity<ResponseWrapper>
      */
-    @PostMapping("/v1")
-    public ResponseEntity<ResponseWrapper> postUser(@Valid @RequestBody UserDTO.CreateRequest requestDto, BindingResult bindingResult) {
+    @PostMapping()
+    public ResponseEntity<ResponseWrapper> createUser(@Valid @RequestBody UserDTO.CreateRequest requestDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             List<ObjectError> errors = bindingResult.getAllErrors();
             throw new CustomApiException(ErrorCode.INVALID_VALUE, errors.get(0).getDefaultMessage());
@@ -43,10 +41,23 @@ public class UserController {
 
     /**
      * 회원 수정 API
-     * @param
-     * @return
      */
     @PutMapping("/v1")
-    public ResponseEntity<ResponseWrapper> putUser(@Valid @RequestBody UserDTO.)
+    public ResponseEntity<ResponseWrapper> updateUser(@Valid @RequestBody UserDTO.UpdateRequest requestDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            List<ObjectError> errors = bindingResult.getAllErrors();
+            throw new CustomApiException(ErrorCode.INVALID_VALUE, errors.get(0).getDefaultMessage());
+        }
+
+        UserDTO.CommonResponse responseBody = userService.updateUser(requestDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 }
