@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -41,8 +42,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDTO.CommonResponse updateUser(UserDTO.UpdateRequest requestDto) {
-        return null;
+        // ID 존재 여부 확인
+        UserEntity user = userRepository.findById(requestDto.getId())
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
+
+        // 기존 비밀번호 확인
+        if (!passwordEncoder.matches(requestDto.getOldPassword(), user.getPassword())) {
+            throw new CustomApiException(ErrorCode.INVALID_USER);
+        }
+
+        // 새 비밀번호 인코딩
+        String encodedPassword = passwordEncoder.encode(requestDto.getNewPassword());
+
+        // 비밀번호 변경
+        user.setPassword(encodedPassword);
+
+        return UserDTO.CommonResponse.builder()
+                .id(user.getId())
+                .build();
     }
 
     @Override
@@ -52,23 +71,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO.LoginResponse login(UserDTO.LoginRequest requestDto) {
-        Optional<UserEntity> user = userRepository.findById(requestDto.getId());
-
         // ID 존재 여부 확인
-        if (user.isEmpty()) {
-            throw new CustomApiException(ErrorCode.INVALID_USER);
-        }
+        UserEntity user = userRepository.findById(requestDto.getId())
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
 
         // 비밀번호 확인
-        if (!passwordEncoder.matches(requestDto.getPassword(), user.get().getPassword())) {
+        if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
             throw new CustomApiException(ErrorCode.INVALID_USER);
         }
 
         // JWT 토큰 생성
-        String token = jwtProvider.createToken(user.get().getId(), user.get().getAuthority());
+        String token = jwtProvider.createToken(user.getId(), user.getAuthority());
 
         return UserDTO.LoginResponse.builder()
-                .id(user.get().getId())
+                .id(user.getId())
                 .token(token)
                 .build();
     }

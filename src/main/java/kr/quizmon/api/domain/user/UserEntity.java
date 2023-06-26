@@ -28,6 +28,7 @@ public class UserEntity implements UserDetails {
     @Column(name = "id")
     private String id;
 
+    @Setter
     @Column(name = "hashed_password")
     private String password;
 
