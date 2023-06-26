@@ -1,6 +1,7 @@
 package kr.quizmon.api.domain.user;
 
 import kr.quizmon.api.global.Util.JwtProvider;
+import kr.quizmon.api.global.Util.RedisIO;
 import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.Optional;
 
 @Slf4j
@@ -18,8 +20,10 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final RedisIO redisIO;
 
     @Override
+    @Transactional
     public UserDTO.CommonResponse createUser(UserDTO.CreateRequest requestDto) {
         // ID 중복 검사
         userRepository
@@ -66,6 +70,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO.CommonResponse deleteUser(UserDTO.DeleteRequest requestDto) {
+
+
         return null;
     }
 
@@ -90,8 +96,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO.CommonResponse logout(String id) {
-        return null;
+    public UserDTO.CommonResponse logout(UserDTO.Logout logoutDto) {
+        long Expiration = jwtProvider.getExpiration(logoutDto.getToken()).getTime();
+        long now = new Date().getTime();
+
+        // Redis에 token등록
+        redisIO.setLogout(logoutDto.getToken(), "logout", Expiration - now);
+
+        return UserDTO.CommonResponse.builder()
+                .id(logoutDto.getId())
+                .build();
     }
 
 }

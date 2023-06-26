@@ -61,6 +61,11 @@ public class JwtProvider {
         return Jwts.parserBuilder().setSigningKey(this.secretKey).build().parseClaimsJws(token).getBody().getSubject();
     }
 
+    // JWT 토큰에서 유효 기간 조회
+    public Date getExpiration(String token) {
+        return Jwts.parserBuilder().setSigningKey(this.secretKey).build().parseClaimsJws(token).getBody().getExpiration();
+    }
+
     // Request Header에서 JWT 토큰 조회
     public String resolveToken(HttpServletRequest request) {
         return request.getHeader(headerName);

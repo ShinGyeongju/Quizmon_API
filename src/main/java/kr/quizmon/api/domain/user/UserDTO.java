@@ -72,6 +72,13 @@ public class UserDTO {
 
     @Getter
     @Builder
+    public static class Logout {
+        private String id;
+        private String token;
+    }
+
+    @Getter
+    @Builder
     public static class CommonResponse {
         private String id;
     }

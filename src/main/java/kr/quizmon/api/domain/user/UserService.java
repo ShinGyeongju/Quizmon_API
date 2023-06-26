@@ -6,5 +6,5 @@ public interface UserService {
 
     UserDTO.CommonResponse deleteUser(UserDTO.DeleteRequest requestDto);
     UserDTO.LoginResponse login(UserDTO.LoginRequest requestDto);
-    UserDTO.CommonResponse logout(String id);
+    UserDTO.CommonResponse logout(UserDTO.Logout logoutDto);
 }

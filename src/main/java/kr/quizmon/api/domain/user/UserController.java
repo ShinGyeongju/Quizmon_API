@@ -45,12 +45,12 @@ public class UserController {
         UserDTO.CommonResponse responseBody = userService.createUser(requestDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
-                .code(HttpStatus.CREATED.value())
+                .code(200)
                 .message("OK")
                 .result(responseBody)
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -70,7 +70,7 @@ public class UserController {
         UserDTO.CommonResponse responseBody = userService.updateUser(requestDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
-                .code(HttpStatus.OK.value())
+                .code(200)
                 .message("OK")
                 .result(responseBody)
                 .build();
@@ -78,7 +78,14 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-
+    /**
+     * 회원 탈퇴
+     */
+//    @PreAuthorize("isAuthenticated()")
+//    @PostMapping("/delete")
+//    public ResponseEntity<ResponseWrapper> deleteUserApi(@Valid @RequestBody UserDTO.DeleteRequest requestDto, BindingResult bindingResult, Authentication auth) {
+//
+//    }
 
     /**
      * 로그인
@@ -93,7 +100,30 @@ public class UserController {
         UserDTO.LoginResponse responseBody = userService.login(requestDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
-                .code(HttpStatus.OK.value())
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 로그아웃
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/logout")
+    public ResponseEntity<ResponseWrapper> logoutApi(@RequestHeader("Authorization") String token, Authentication auth) {
+        // 인가된 사용자 id 및 JWT 토큰 설정
+        UserDTO.Logout logoutDto = UserDTO.Logout.builder()
+                .id(auth.getName())
+                .token(token)
+                .build();
+
+        UserDTO.CommonResponse responseBody = userService.logout(logoutDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
                 .message("OK")
                 .result(responseBody)
                 .build();
