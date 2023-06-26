@@ -7,11 +7,12 @@ import kr.quizmon.api.global.common.ResponseWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,8 +22,11 @@ public class UserController {
 
 
     // TEST
+    @PreAuthorize("isAuthenticated()")
     @GetMapping()
-    public String testApi() {
+    public String testApi(Authentication auth) {
+        System.out.println(auth.getAuthorities());
+        System.out.println(SecurityContextHolder.getContext().getAuthentication());
         return "TEST API";
     }
 
@@ -52,12 +56,16 @@ public class UserController {
     /**
      * 회원 수정
      */
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("")
-    public ResponseEntity<ResponseWrapper> updateUserApi(@Valid @RequestBody UserDTO.UpdateRequest requestDto, BindingResult bindingResult) {
+    public ResponseEntity<ResponseWrapper> updateUserApi(@Valid @RequestBody UserDTO.UpdateRequest requestDto, BindingResult bindingResult, Authentication auth) {
         if (bindingResult.hasErrors()) {
             ObjectError error = bindingResult.getAllErrors().get(0);
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
         }
+
+        // 인가된 사용자 id 설정
+        requestDto.setId(auth.getName());
 
         UserDTO.CommonResponse responseBody = userService.updateUser(requestDto);
 
@@ -82,7 +90,7 @@ public class UserController {
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
         }
 
-        UserDTO.CommonResponse responseBody = userService.login(requestDto);
+        UserDTO.LoginResponse responseBody = userService.login(requestDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(HttpStatus.OK.value())

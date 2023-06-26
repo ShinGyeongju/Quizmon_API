@@ -1,5 +1,6 @@
 package kr.quizmon.api.domain.user;
 
+import kr.quizmon.api.global.Util.JwtProvider;
 import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     @Override
     public UserDTO.CommonResponse createUser(UserDTO.CreateRequest requestDto) {
@@ -25,10 +27,12 @@ public class UserServiceImpl implements UserService {
                     throw new CustomApiException(ErrorCode.ALREADY_EXISTS_USER);
                  });
 
-        // Password encoding
+        // 비밀번호 인코딩
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
 
         requestDto.setPassword(encodedPassword);
+
+        // 사용자 저장
         UserEntity user = userRepository.save(requestDto.toEntity());
 
         return UserDTO.CommonResponse.builder()
@@ -47,7 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO.CommonResponse login(UserDTO.LoginRequest requestDto) {
+    public UserDTO.LoginResponse login(UserDTO.LoginRequest requestDto) {
         Optional<UserEntity> user = userRepository.findById(requestDto.getId());
 
         // ID 존재 여부 확인
@@ -60,12 +64,12 @@ public class UserServiceImpl implements UserService {
             throw new CustomApiException(ErrorCode.INVALID_USER);
         }
 
+        // JWT 토큰 생성
+        String token = jwtProvider.createToken(user.get().getId(), user.get().getAuthority());
 
-
-
-
-        return UserDTO.CommonResponse.builder()
+        return UserDTO.LoginResponse.builder()
                 .id(user.get().getId())
+                .token(token)
                 .build();
     }
 

@@ -14,9 +14,9 @@ public class UserDTO {
         @Size(min = 4, max = 20, message = "ID는 최소 4, 최대 20글자 까지만 가능합니다.")
         private String id;
 
+        @Setter
         @NotBlank(message = "유효하지 않은 Password입니다.")
         @Size(max = 20, message = "Password는 최대 20글자 까지만 가능합니다.")
-        @Setter
         private String password;
 
         public UserEntity toEntity() {
@@ -31,15 +31,23 @@ public class UserDTO {
     @Getter
     @NoArgsConstructor
     public static class UpdateRequest {
+        @Setter
+        private String id;
+
         @NotBlank(message = "유효하지 않은 Password입니다.")
         private String oldPassword;
 
+        @Setter
         @NotBlank(message = "유효하지 않은 Password입니다.")
         @Size(max = 20, message = "Password는 최대 20글자 까지만 가능합니다.")
         private String newPassword;
 
-        // TODO: toEntity
-    }
+        public UserEntity toEntity() {
+            return UserEntity.builder()
+                    .id(id)
+                    .password(newPassword)
+                    .build();
+        }    }
 
     @Getter
     @NoArgsConstructor
@@ -66,5 +74,12 @@ public class UserDTO {
     @Builder
     public static class CommonResponse {
         private String id;
+    }
+
+    @Getter
+    @Builder
+    public static class LoginResponse {
+        private String id;
+        private String token;
     }
 }
