@@ -4,11 +4,22 @@ plugins {
     id("io.spring.dependency-management") version "1.1.0"
 }
 
+tasks.bootJar {
+    archiveBaseName.set("quizmon")
+    archiveFileName.set("quizmon-api.jar")
+    archiveVersion.set("1.0.2")
+}
+
+tasks.jar {
+    enabled = false
+}
+
 group = "kr.quizmon"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 configurations {
+
     compileOnly {
         extendsFrom(configurations.annotationProcessor.get())
     }
