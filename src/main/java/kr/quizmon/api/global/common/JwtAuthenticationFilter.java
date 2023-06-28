@@ -9,6 +9,7 @@ import kr.quizmon.api.global.Util.RedisIO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -24,8 +25,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // token 유효성 검증
         if (token != null && jwtProvider.validateToken(token) && !redisIO.hasLogoutKey(token)) {
-            Authentication auth = jwtProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            try {
+                Authentication auth = jwtProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } catch (UsernameNotFoundException ex) {
+                //
+            }
         }
 
         filterChain.doFilter(request, response);

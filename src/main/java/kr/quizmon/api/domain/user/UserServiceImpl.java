@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -69,13 +68,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDTO.CommonResponse deleteUser(UserDTO.DeleteRequest requestDto) {
+        // ID 존재 여부 확인
+        UserEntity user = userRepository.findById(requestDto.getId())
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
 
+        // 비밀번호 확인
+        if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
+            throw new CustomApiException(ErrorCode.INVALID_USER);
+        }
 
-        return null;
+        // 사용자 삭제
+        userRepository.deleteById(requestDto.getId());
+
+        return UserDTO.CommonResponse.builder()
+                .id(user.getId())
+                .build();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDTO.LoginResponse login(UserDTO.LoginRequest requestDto) {
         // ID 존재 여부 확인
         UserEntity user = userRepository.findById(requestDto.getId())

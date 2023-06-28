@@ -52,6 +52,9 @@ public class UserDTO {
     @Getter
     @NoArgsConstructor
     public static class DeleteRequest {
+        @Setter
+        private String id;
+
         @NotBlank(message = "유효하지 않은 Password입니다.")
         private String password;
 
@@ -66,8 +69,6 @@ public class UserDTO {
 
         @NotBlank(message = "유효하지 않은 Password입니다.")
         private String password;
-
-        // TODO: toEntity
     }
 
     @Getter

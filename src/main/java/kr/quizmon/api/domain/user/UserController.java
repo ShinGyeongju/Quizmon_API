@@ -81,11 +81,27 @@ public class UserController {
     /**
      * 회원 탈퇴
      */
-//    @PreAuthorize("isAuthenticated()")
-//    @PostMapping("/delete")
-//    public ResponseEntity<ResponseWrapper> deleteUserApi(@Valid @RequestBody UserDTO.DeleteRequest requestDto, BindingResult bindingResult, Authentication auth) {
-//
-//    }
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/delete")
+    public ResponseEntity<ResponseWrapper> deleteUserApi(@Valid @RequestBody UserDTO.DeleteRequest requestDto, BindingResult bindingResult, Authentication auth) {
+        if (bindingResult.hasErrors()) {
+            ObjectError error = bindingResult.getAllErrors().get(0);
+            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+        }
+
+        // 인가된 사용자 id 설정
+        requestDto.setId(auth.getName());
+
+        UserDTO.CommonResponse responseBody = userService.deleteUser(requestDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
     /**
      * 로그인
