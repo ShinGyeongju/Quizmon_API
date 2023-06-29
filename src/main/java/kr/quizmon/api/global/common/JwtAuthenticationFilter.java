@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Authentication auth = jwtProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (UsernameNotFoundException ex) {
-                //
+                // Not found user
             }
         }
 

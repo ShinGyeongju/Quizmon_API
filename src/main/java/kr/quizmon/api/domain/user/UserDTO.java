@@ -7,16 +7,22 @@ import lombok.*;
 
 public class UserDTO {
     @Getter
+    @Builder
+    public static class Check {
+        private String id;
+    }
+
+    @Getter
     @NoArgsConstructor
     public static class CreateRequest {
         @NotBlank(message = "유효하지 않은 ID입니다.")
-        @Pattern(regexp="^[0-9a-zA-Z]*$" , message="ID는 영문자/숫자 조합만 가능합니다.")
+        @Pattern(regexp="^[0-9a-z]*$" , message="ID는 영(소)문자/숫자 조합만 가능합니다.")
         @Size(min = 4, max = 20, message = "ID는 최소 4, 최대 20글자 까지만 가능합니다.")
         private String id;
 
         @Setter
         @NotBlank(message = "유효하지 않은 Password입니다.")
-        @Size(max = 20, message = "Password는 최대 20글자 까지만 가능합니다.")
+        @Size(min = 4, max = 20, message = "Password는 최소 4, 최대 20글자 까지만 가능합니다.")
         private String password;
 
         public UserEntity toEntity() {
@@ -82,6 +88,13 @@ public class UserDTO {
     @Builder
     public static class CommonResponse {
         private String id;
+    }
+
+    @Getter
+    @Builder
+    public static class CheckResponse {
+        private String id;
+        private boolean idExists;
     }
 
     @Getter

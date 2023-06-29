@@ -31,6 +31,18 @@ public class UserController {
     }
 
 
+    /**
+     * ID 확인
+     */
+    @GetMapping("/{id}/check")
+    public ResponseEntity<ResponseWrapper> checkUserApi(@PathVariable("id") String id) {
+        UserDTO.Check checkDto = UserDTO.Check.builder()
+                .id(id)
+                .build();
+
+
+    }
+
 
     /**
      * 회원 가입

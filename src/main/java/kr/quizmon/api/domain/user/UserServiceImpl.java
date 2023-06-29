@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -20,6 +21,17 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final RedisIO redisIO;
+
+    @Override
+    public UserDTO.CheckResponse checkUser(UserDTO.Check checkDto) {
+        // ID 중복 검사
+        boolean idExists = userRepository.findById(checkDto.getId()).isPresent();
+
+        return UserDTO.CheckResponse.builder()
+                .id(checkDto.getId())
+                .idExists(idExists)
+                .build();
+    }
 
     @Override
     @Transactional
