@@ -39,7 +39,7 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
-        script: cd /quizmon && rm -rf quizmon-api.jar.backup && mv quizmon-api.jar quizmon-api.jar.backup
+        script: cd /quizmon && mv -f quizmon-api.jar quizmon-api.jar.backup || echo
 
     - name: Deploy to EC2
       uses: appleboy/scp-action@master
