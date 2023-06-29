@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <property name="LOG_DIR"
-              value="logs"/>
-
-
     <!-- @@@@@@@@@@@ Dev @@@@@@@@@@@-->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -16,9 +12,11 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-
     <!-- @@@@@@@@@@@ Product @@@@@@@@@@@-->
     <springProfile name="!dev">
+        <property resource="./application.properties"/>
+        <property name="LOG_DIR" value="${log.file.path}"/>
+
         <appender name="FILE-INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>${LOG_DIR}/info/info.log</file>
             <filter class = "ch.qos.logback.classic.filter.LevelFilter">
