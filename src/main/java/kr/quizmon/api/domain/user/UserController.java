@@ -40,7 +40,15 @@ public class UserController {
                 .id(id)
                 .build();
 
+        UserDTO.CheckResponse responseBody = userService.checkUser(checkDto);
 
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 
