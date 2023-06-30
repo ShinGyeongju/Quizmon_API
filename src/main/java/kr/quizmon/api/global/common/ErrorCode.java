@@ -9,7 +9,12 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     // 400 Bad Request
     INVALID_VALUE(HttpStatus.BAD_REQUEST, 10300, "유효하지 않은 값입니다."),
-    ALREADY_EXISTS_USER(HttpStatus.BAD_REQUEST, 10301, "이미 존재하는 ID입니다."),
+
+    INVALID_ID(HttpStatus.BAD_REQUEST, 10301, "유효하지 않은 ID입니다."),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, 10302, "유효하지 않은 Password입니다."),
+
+
+    ALREADY_EXISTS_USER(HttpStatus.BAD_REQUEST, 10303, "이미 존재하는 ID입니다."),
 
     // 401 Unauthorized
     INVALID_USER(HttpStatus.UNAUTHORIZED, 11300, "유효하지 않은 사용자입니다."),

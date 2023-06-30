@@ -14,6 +14,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/user")
@@ -51,7 +53,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
     /**
      * 회원 가입
      */
@@ -59,7 +60,14 @@ public class UserController {
     public ResponseEntity<ResponseWrapper> createUserAPi(@Valid @RequestBody UserDTO.CreateRequest requestDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             ObjectError error = bindingResult.getAllErrors().get(0);
-            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+            String errorCode = Objects.requireNonNull(error.getCodes())[1];
+            String errorArgs = errorCode.split("\\.")[1];
+
+            switch (errorArgs) {
+                case "id" -> throw new CustomApiException(ErrorCode.INVALID_ID);
+                case "password" -> throw new CustomApiException(ErrorCode.INVALID_PASSWORD);
+                default -> throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+            }
         }
 
         UserDTO.CommonResponse responseBody = userService.createUser(requestDto);

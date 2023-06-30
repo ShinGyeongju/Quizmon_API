@@ -59,4 +59,4 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
-        script: service springbootd start
+        script: chmod +x /quizmon/quizmon-api.jar && service springbootd start
