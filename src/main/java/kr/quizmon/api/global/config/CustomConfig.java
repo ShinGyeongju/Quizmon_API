@@ -13,4 +13,8 @@ public class CustomConfig {
     private String jwt_secret_key;
     private int jwt_expiration_hour;
 
+    // HMAC
+    private String hmac_header;
+    private String hmac_secret_key;
+    private int hmac_expiration_minute;
 }

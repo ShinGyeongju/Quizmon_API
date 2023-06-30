@@ -1,8 +1,9 @@
 package kr.quizmon.api.global.config;
 
+import kr.quizmon.api.global.SecurityFilter.HmacAuthenticationFilter;
 import kr.quizmon.api.global.Util.JwtProvider;
 import kr.quizmon.api.global.Util.RedisIO;
-import kr.quizmon.api.global.common.JwtAuthenticationFilter;
+import kr.quizmon.api.global.SecurityFilter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
+    private final CustomConfig customConfig;
     private final JwtProvider jwtProvider;
     private final RedisIO redisIO;
 
@@ -38,6 +40,7 @@ public class SecurityConfig {
                 .sessionManagement((sessionManagement) -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .addFilterBefore(new HmacAuthenticationFilter(customConfig), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, redisIO), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

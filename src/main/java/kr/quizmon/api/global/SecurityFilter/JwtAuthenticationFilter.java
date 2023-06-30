@@ -1,4 +1,4 @@
-package kr.quizmon.api.global.common;
+package kr.quizmon.api.global.SecurityFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
