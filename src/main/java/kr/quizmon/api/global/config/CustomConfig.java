@@ -17,4 +17,5 @@ public class CustomConfig {
     private String hmac_header;
     private String hmac_secret_key;
     private int hmac_expiration_minute;
+
 }
