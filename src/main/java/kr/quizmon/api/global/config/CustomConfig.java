@@ -8,6 +8,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ConfigurationProperties(prefix = "custom.properties")
 public class CustomConfig {
+    // CORS
+    private boolean allow_cors;
+
     // JWT
     private String jwt_header;
     private String jwt_secret_key;
