@@ -1,6 +1,6 @@
 package kr.quizmon.api.global.config;
 
-import kr.quizmon.api.domain.quiz.QuizEntity;
+import kr.quizmon.api.domain.quiz.QuizDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
@@ -38,11 +38,11 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, QuizEntity> quizRedisTemplate() {
-        RedisTemplate<String, QuizEntity> redisTemplate = new RedisTemplate<>();
+    public RedisTemplate<String, QuizDTO.CreateRedis> quizRedisTemplate() {
+        RedisTemplate<String, QuizDTO.CreateRedis> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<QuizEntity>(QuizEntity.class));
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(QuizDTO.CreateRedis.class));
 
         return redisTemplate;
     }

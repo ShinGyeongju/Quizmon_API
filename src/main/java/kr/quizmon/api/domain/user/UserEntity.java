@@ -1,6 +1,7 @@
 package kr.quizmon.api.domain.user;
 
 import jakarta.persistence.*;
+import kr.quizmon.api.domain.quiz.QuizEntity;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -10,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Entity(name = "tb_user")
 @Getter
@@ -41,6 +41,8 @@ public class UserEntity implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updated_at;
 
+    @OneToMany(mappedBy = "userEntity")
+    private List<QuizEntity> quizEntities = new ArrayList<>();
 
 
     @Override

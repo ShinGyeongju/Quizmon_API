@@ -1,6 +1,7 @@
 package kr.quizmon.api.global.config;
 
 import kr.quizmon.api.global.SecurityFilter.HmacAuthenticationFilter;
+import kr.quizmon.api.global.Util.HmacProvider;
 import kr.quizmon.api.global.Util.JwtProvider;
 import kr.quizmon.api.global.Util.RedisIO;
 import kr.quizmon.api.global.SecurityFilter.JwtAuthenticationFilter;
@@ -27,6 +28,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
     private final CustomConfig customConfig;
     private final JwtProvider jwtProvider;
+    private final HmacProvider hmacProvider;
     private final RedisIO redisIO;
 
     @Bean
@@ -62,7 +64,7 @@ public class SecurityConfig {
                 .sessionManagement((sessionManagement) -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(new HmacAuthenticationFilter(customConfig), UsernamePasswordAuthenticationFilter.class)
+                //.addFilterBefore(new HmacAuthenticationFilter(customConfig, hmacProvider), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, redisIO), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
