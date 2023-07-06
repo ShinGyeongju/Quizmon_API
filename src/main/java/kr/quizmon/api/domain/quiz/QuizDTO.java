@@ -5,10 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import kr.quizmon.api.domain.user.UserEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -63,22 +60,6 @@ public class QuizDTO {
             private String[] answerArray;
         }
 
-        public QuizEntity toEntity(UserEntity user, String thumbnailUrl, List<QnAImageEntity> images) {
-            return QuizEntity.builder()
-                    .userEntity(user)
-                    .quizId(quizId)
-                    .title(title)
-                    .description(comment)
-                    .type(type.toUpperCase())
-                    .thumbnail_url(thumbnailUrl)
-                    .limit_time(limitTime)
-                    .public_access(publicAccess)
-                    .random_question(randomQuestion)
-                    .question_count(images.size())
-                    .qnAImageEntities(images)
-                    .build();
-        }
-
         public CreateRedis toRedisEntity(String thumbnailUrl, List<QnAImageEntity> images) {
             return CreateRedis.builder()
                     .quizId(quizId)
@@ -97,6 +78,8 @@ public class QuizDTO {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CreateRedis {
         private UUID quizId;
         private String title;
@@ -108,8 +91,34 @@ public class QuizDTO {
         private boolean randomQuestion;
         private int questionCount;
         private List<QnAImageEntity> imageList;
+
+        public QuizEntity toQuizEntity(UserEntity user) {
+            return QuizEntity.builder()
+                    .quizId(quizId)
+                    .userEntity(user)
+                    .title(title)
+                    .description(comment)
+                    .type(type)
+                    .thumbnail_url(thumbnailUrl)
+                    .limit_time(limitTime)
+                    .public_access(publicAccess)
+                    .random_question(randomQuestion)
+                    .question_count(questionCount)
+                    .qnAImageEntities(imageList)
+                    .build();
+        }
+
+        public List<QnAImageEntity> toQnAImageEntities(QuizEntity quiz) {
+            return imageList.stream().peek(image -> image.setQuizEntity(quiz)).toList();
+        }
     }
 
+    @Getter
+    @Builder
+    public static class CommonRequest {
+        private String userId;
+        private String quizId;
+    }
 
 
     @Getter
@@ -118,12 +127,21 @@ public class QuizDTO {
         private String quizId;
     }
 
+
+
     @Getter
     @Builder
     static class CreateStartResponse {
         private String quizId;
         private String thumbnailUrl;
         private String[] uploadUrlArray;
+    }
+
+    @Getter
+    @Builder
+    static class CreateEndResponse {
+        private String quizId;
+        private boolean succeed;
     }
 
 }

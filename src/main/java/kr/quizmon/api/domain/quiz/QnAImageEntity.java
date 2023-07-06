@@ -20,6 +20,7 @@ public class QnAImageEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int image_id;
 
+    @Setter
     @ManyToOne
     @JoinColumn(name = "quiz_id")
     private QuizEntity quizEntity;

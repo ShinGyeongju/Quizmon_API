@@ -1,6 +1,7 @@
 package kr.quizmon.api.domain.quiz;
 
 import jakarta.validation.Valid;
+import kr.quizmon.api.global.Util.RedisIO;
 import kr.quizmon.api.global.Util.S3Manager;
 import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
@@ -24,16 +25,15 @@ import java.util.UUID;
 public class QuizController {
     private final QuizService quizService;
     private final S3Manager s3Manager;
+    private final RedisIO redisIO;
 
     private final List<String> QUIZ_TYPE = List.of("IMAGE", "SOUND");
 
     // TEST
     @GetMapping("/test")
-    public String testApi(@RequestPart(value = "file") MultipartFile file) {
+    public String testApi(@RequestPart(value = "quizId") String quizId) {
 
-
-        //String quizId = UUID.randomUUID().toString();
-        String quizId = "test";
+        //redisIO.deleteQuiz("0691489a-2a9f-42e4-8246-2412c4a401fb");
 
 
         return quizId;
@@ -74,5 +74,25 @@ public class QuizController {
     /**
      * 퀴즈 생성 완료
      */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{id}/image/end")
+    public ResponseEntity<ResponseWrapper> createQuizEndApi(@PathVariable("id") String quizId, Authentication auth) {
+        QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
+                .userId(auth.getName())
+                .quizId(quizId)
+                .build();
+
+        QuizDTO.CreateEndResponse responseBody = quizService.createEndQuiz(commonDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+
 
 }

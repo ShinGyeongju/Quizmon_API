@@ -59,6 +59,33 @@ public class S3Manager {
         return amazonS3Client.getUrl(bucket, objectKey).toString();
     }
 
+    public boolean checkOebject(String quizId) {
+        // quizId에 해당하는 모든 이미지 조회
+        ListObjectsV2Result listResult = amazonS3Client.listObjectsV2(bucket, PREFIX_IMAGE + quizId);
+        List<S3ObjectSummary> objectList = listResult.getObjectSummaries();
+
+        // 파일 개수 확인
+        int objectCount = objectList.size();
+        if (objectCount < 1 || objectCount > 31) {
+            return false;
+        }
+
+        // 파일 용량 확인 (5.1MB 이하)
+        boolean sizeChecked = objectList.stream()
+                .filter(object -> object.getSize() > 5100000)
+                .findFirst()
+                .isEmpty();
+
+        return sizeChecked;
+    }
+
+    public int getObjectCount(String quizId) {
+        // quizId에 해당하는 모든 이미지 조회
+        ListObjectsV2Result listResult = amazonS3Client.listObjectsV2(bucket, PREFIX_IMAGE + quizId);
+
+        return listResult.getKeyCount();
+    }
+
     public void deleteObject(String quizId) {
         // quizId에 해당하는 모든 이미지 조회
         ListObjectsV2Result listResult = amazonS3Client.listObjectsV2(bucket, PREFIX_IMAGE + quizId);
@@ -69,7 +96,9 @@ public class S3Manager {
         });
 
         // quizId에 해당하는 모든 이미지 삭제
-        DeleteObjectsRequest request = new DeleteObjectsRequest(bucket).withKeys(keyVersions);
+        DeleteObjectsRequest request = new DeleteObjectsRequest(bucket)
+                .withKeys(keyVersions);
+
         amazonS3Client.deleteObjects(request);
     }
 

@@ -20,6 +20,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
     private final QuizRepository quizRepository;
+    private final QnAImageRepository qnAImageRepository;
     private final UserRepository userRepository;
     private final RedisIO redisIO;
     private final HmacProvider hmacProvider;
@@ -82,6 +83,63 @@ public class QuizServiceImpl implements QuizService {
                 .quizId(quizId)
                 .thumbnailUrl(thumbnailPreUrl)
                 .uploadUrlArray(urlArray)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public QuizDTO.CreateEndResponse createEndQuiz(QuizDTO.CommonRequest commonDto) {
+        String quizId = commonDto.getQuizId();
+
+        QuizDTO.CreateEndResponse errorResponse = QuizDTO.CreateEndResponse.builder()
+                .quizId(quizId)
+                .succeed(false)
+                .build();
+
+        try {
+            // Redis에서 퀴즈 정보 가져오기
+            QuizDTO.CreateRedis redisQuiz = redisIO.getQuiz(quizId);
+            if (redisQuiz == null) {
+                throw new Exception("There is no such quizId in redis.");
+            }
+            redisIO.deleteQuiz(quizId);
+
+            // S3에 저장된 퀴즈 검증
+            if (!s3Manager.checkOebject(quizId)) {
+                throw new Exception("Invalid image file");
+            }
+
+            // Redis와 S3의 파일 개수 비교
+            int imageCount = redisQuiz.getThumbnailUrl() != null
+                    ? redisQuiz.getQuestionCount() + 1
+                    : redisQuiz.getQuestionCount();
+            if (imageCount != s3Manager.getObjectCount(quizId)) {
+                throw new Exception("File count does not match.");
+            }
+
+            // ID 존재 여부 확인
+            UserEntity user = userRepository.findById(commonDto.getUserId())
+                    .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
+
+            // Quiz 저장
+            QuizEntity quiz = quizRepository.saveAndFlush(redisQuiz.toQuizEntity(user));
+
+            // Image 문/답 저장
+            qnAImageRepository.saveAllAndFlush(redisQuiz.toQnAImageEntities(quiz));
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+
+            // 이미지 파일 삭제
+            s3Manager.deleteObject(quizId);
+            // Redis에서 퀴즈 정보 삭제
+            redisIO.deleteQuiz(quizId);
+
+            return errorResponse;
+        }
+
+        return QuizDTO.CreateEndResponse.builder()
+                .quizId(quizId)
+                .succeed(true)
                 .build();
     }
 

@@ -37,9 +37,11 @@ public class RedisIO {
     }
 
     public QuizDTO.CreateRedis getQuiz(String key) {
-        QuizDTO.CreateRedis quiz = quizRedisTemplate.opsForValue().get(key);
+        return quizRedisTemplate.opsForValue().get(key);
+    }
+
+    public void deleteQuiz(String key) {
         quizRedisTemplate.delete(key);
-        return quiz;
     }
 
 
