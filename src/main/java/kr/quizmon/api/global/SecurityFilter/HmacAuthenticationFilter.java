@@ -6,21 +6,19 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kr.quizmon.api.global.Util.HmacProvider;
 import kr.quizmon.api.global.config.CustomConfig;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 @RequiredArgsConstructor
 public class HmacAuthenticationFilter extends OncePerRequestFilter {
     final private CustomConfig customConfig;
+    final private HmacProvider hmacProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -51,12 +49,8 @@ public class HmacAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // Hmac 생성
-            SecretKeySpec secretKey = new SecretKeySpec(customConfig.getHmac_secret_key().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(secretKey);
             String hmacMessage = splitHmac[0] + request.getMethod() + request.getRequestURI();
-            byte[] hash = mac.doFinal(hmacMessage.getBytes());
-            String encodedHash = Base64.encodeBase64String(hash);
+            String encodedHash = hmacProvider.genHmacBase64Code(customConfig.getHmac_secret_key(), hmacMessage);
 
             // Hmac 검증
             if (!encodedHash.equals(splitHmac[1])) {
