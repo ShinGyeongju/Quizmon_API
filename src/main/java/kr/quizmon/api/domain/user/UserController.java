@@ -5,6 +5,7 @@ import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
 import kr.quizmon.api.global.common.ResponseWrapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,6 @@ import java.util.Objects;
 public class UserController {
     private final UserService userService;
 
-
     // TEST
     @PreAuthorize("isAuthenticated()")
     @GetMapping()
@@ -31,7 +31,6 @@ public class UserController {
         System.out.println(SecurityContextHolder.getContext().getAuthentication());
         return "TEST API";
     }
-
 
     /**
      * ID 확인
@@ -50,7 +49,7 @@ public class UserController {
                 .result(responseBody)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.ok(response);
     }
 
     /**

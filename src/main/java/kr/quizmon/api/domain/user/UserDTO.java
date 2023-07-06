@@ -47,13 +47,7 @@ public class UserDTO {
         @NotBlank(message = "유효하지 않은 Password입니다.")
         @Size(max = 20, message = "Password는 최대 20글자 까지만 가능합니다.")
         private String newPassword;
-
-        public UserEntity toEntity() {
-            return UserEntity.builder()
-                    .id(id)
-                    .password(newPassword)
-                    .build();
-        }    }
+    }
 
     @Getter
     @NoArgsConstructor
@@ -63,8 +57,6 @@ public class UserDTO {
 
         @NotBlank(message = "유효하지 않은 Password입니다.")
         private String password;
-
-        // TODO: toEntity
     }
 
     @Getter
