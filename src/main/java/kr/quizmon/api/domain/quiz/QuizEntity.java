@@ -50,6 +50,9 @@ public class QuizEntity {
     @Column(name = "random_question")
     private boolean random_question;
 
+    @Column(name = "multiple_choice")
+    private boolean multiple_choice;
+
     @Column(name = "url_id")
     private String url_id;
 

@@ -70,6 +70,7 @@ public class QuizDTO {
                     .thumbnailUrl(thumbnailUrl)
                     .publicAccess(publicAccess)
                     .randomQuestion(randomQuestion)
+                    .multipleChoice(multipleChoice)
                     .questionCount(images.size())
                     .imageList(images)
                     .build();
@@ -89,6 +90,7 @@ public class QuizDTO {
         private String thumbnailUrl;
         private boolean publicAccess;
         private boolean randomQuestion;
+        private boolean multipleChoice;
         private int questionCount;
         private List<QnAImageEntity> imageList;
 
@@ -103,6 +105,7 @@ public class QuizDTO {
                     .limit_time(limitTime)
                     .public_access(publicAccess)
                     .random_question(randomQuestion)
+                    .multiple_choice(multipleChoice)
                     .question_count(questionCount)
                     .qnAImageEntities(imageList)
                     .build();
@@ -142,6 +145,30 @@ public class QuizDTO {
     static class CreateEndResponse {
         private String quizId;
         private boolean succeed;
+    }
+
+    @Getter
+    @Builder
+    static class GetResponse {
+        private String quizId;
+        private String title;
+        private String comment;
+        private String type;
+        private String thumbnailUrl;
+        private short limitTime;
+        private boolean publicAccess;
+        private boolean randomQuestion;
+        private boolean multipleChoice;
+        private int playCount;
+        private int reportCount;
+        private GetResponse.QnA[] qnaArray;
+
+        @Getter
+        public static class QnA {
+            private String questionUrl;
+            private String[] optionArray;
+            private String[] answerArray;
+        }
     }
 
 }

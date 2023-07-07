@@ -7,6 +7,7 @@ import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
 import kr.quizmon.api.global.common.ResponseWrapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -90,9 +91,33 @@ public class QuizController {
                 .result(responseBody)
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * 퀴즈 수정
+     */
+
+
+    /**
+     * 상세 조회
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseWrapper> getQuizApi(@PathVariable("id") String quizId) {
+        QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
+                .quizId(quizId)
+                .build();
+
+        QuizDTO.GetResponse responseBody = quizService.getQuiz(commonDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }

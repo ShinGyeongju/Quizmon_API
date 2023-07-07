@@ -144,4 +144,28 @@ public class QuizServiceImpl implements QuizService {
     }
 
 
+    @Override
+    @Transactional(readOnly = true)
+    public QuizDTO.GetResponse getQuiz(QuizDTO.CommonRequest commonDto) {
+        // 퀴즈 존재 여부 확인
+        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(commonDto.getQuizId()))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+
+        System.out.println(quiz);
+
+
+
+
+        return QuizDTO.GetResponse.builder()
+                .quizId(commonDto.getQuizId())
+                .title(quiz.getTitle())
+                .comment(quiz.getDescription())
+                .type(quiz.getType())
+                .thumbnailUrl(quiz.getThumbnail_url())
+                .limitTime(quiz.getLimit_time())
+                .publicAccess(quiz.isPublic_access())
+                .randomQuestion(quiz.isRandom_question())
+                .multipleChoice(quiz.isMultiple_choice()).build();
+    }
+
 }
