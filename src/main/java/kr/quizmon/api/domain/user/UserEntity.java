@@ -19,7 +19,7 @@ import java.util.*;
 @Builder
 @DynamicInsert
 @DynamicUpdate
-@ToString
+@ToString(exclude = "quizEntities")
 public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

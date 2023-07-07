@@ -90,6 +90,11 @@ public class S3Manager {
         // quizId에 해당하는 모든 이미지 조회
         ListObjectsV2Result listResult = amazonS3Client.listObjectsV2(bucket, PREFIX_IMAGE + quizId);
 
+        // 이미지 존재 여부 확인
+        if (listResult.getKeyCount() == 0) {
+            return;
+        }
+
         List<DeleteObjectsRequest.KeyVersion> keyVersions = new ArrayList<>(listResult.getKeyCount());
         listResult.getObjectSummaries().forEach(object -> {
             keyVersions.add(new DeleteObjectsRequest.KeyVersion(object.getKey()));

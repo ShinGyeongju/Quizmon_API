@@ -151,10 +151,15 @@ public class QuizServiceImpl implements QuizService {
         QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(commonDto.getQuizId()))
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
 
-        System.out.println(quiz);
-
-
-
+        // 문제 응답 배열 생성
+        QuizDTO.GetResponse.QnA[] qnas = quiz.getQnAImageEntities().stream()
+                .sorted(Comparator.comparing(QnAImageEntity::getSequence_number))
+                .map(image -> QuizDTO.GetResponse.QnA.builder()
+                        .questionUrl(image.getImage_url())
+                        .optionArray(image.getOptions())
+                        .answerArray(image.getAnswer())
+                        .build())
+                .toArray(QuizDTO.GetResponse.QnA[]::new);
 
         return QuizDTO.GetResponse.builder()
                 .quizId(commonDto.getQuizId())
@@ -165,7 +170,11 @@ public class QuizServiceImpl implements QuizService {
                 .limitTime(quiz.getLimit_time())
                 .publicAccess(quiz.isPublic_access())
                 .randomQuestion(quiz.isRandom_question())
-                .multipleChoice(quiz.isMultiple_choice()).build();
+                .multipleChoice(quiz.isMultiple_choice())
+                .playCount(quiz.getPlay_count())
+                .reportCount(quiz.getReport_count())
+                .qnaArray(qnas)
+                .build();
     }
 
 }

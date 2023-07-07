@@ -18,11 +18,10 @@ import java.util.UUID;
 @Builder
 @DynamicInsert
 @DynamicUpdate
-@ToString
+@ToString(exclude = "userEntity")
 public class QuizEntity {
     @Id
     @Column(name = "quiz_id")
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID quizId;
 
     @ManyToOne

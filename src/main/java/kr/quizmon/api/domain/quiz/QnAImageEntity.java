@@ -14,7 +14,7 @@ import org.hibernate.annotations.Type;
 @Builder
 @DynamicInsert
 @DynamicUpdate
-@ToString
+@ToString(exclude = "quizEntity")
 public class QnAImageEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

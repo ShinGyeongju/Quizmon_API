@@ -164,6 +164,7 @@ public class QuizDTO {
         private GetResponse.QnA[] qnaArray;
 
         @Getter
+        @Builder
         public static class QnA {
             private String questionUrl;
             private String[] optionArray;
