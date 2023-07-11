@@ -161,16 +161,20 @@ public class UserController {
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
         }
 
-        UserDTO.LoginResponse responseBody = userService.login(requestDto);
+        UserDTO.LoginResponse loginResponse = userService.login(requestDto);
 
-        Cookie cookie = new Cookie("Authorization", responseBody.getToken());
+        // 쿠키 설정
+        Cookie cookie = new Cookie("Authorization", loginResponse.getToken());
         cookie.setPath("/api");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(60 * 60 * 12);     // 12시간
         //cookie.setDomain("SampleDomain.com");
         //cookie.setSecure(true);
-
         response.addCookie(cookie);
+
+        UserDTO.CommonResponse responseBody = UserDTO.CommonResponse.builder()
+                .id(loginResponse.getId())
+                .build();
 
         ResponseWrapper responseWrapper = ResponseWrapper.builder()
                 .code(200)
