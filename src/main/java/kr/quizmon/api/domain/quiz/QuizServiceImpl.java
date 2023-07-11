@@ -143,6 +143,61 @@ public class QuizServiceImpl implements QuizService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public QuizDTO.UpdateStartResponse updateStartQuiz(QuizDTO.UpdateRequest requestDto) {
+        String quizId = requestDto.getQuizId().toString();
+
+        // 퀴즈 존재 여부 확인
+        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(quizId))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+
+        // 이미지 업로드 여부 확인
+        Optional<QuizDTO.UpdateRequest.QnA> containsNull = Arrays.stream(requestDto.getQnaArray()).
+                filter(qna -> qna.getQuestionUrl() == null).
+                findFirst();
+
+        // 업로드할 이미지가 없으면 덮어쓰고 응답
+        if (containsNull.isEmpty() && !requestDto.isThumbnail()) {
+            // 퀴즈 기본 정보 수정
+            quiz.updateQuiz(requestDto);
+
+            // 기존 문제 전체 삭제
+            qnAImageRepository.deleteAllByQuizId(quizId);
+
+            // 요청 문제 추가
+            List<QnAImageEntity> imageEntities = new ArrayList<>(requestDto.getQnaArray().length);
+            int i = 0;
+            for (QuizDTO.UpdateRequest.QnA qna : requestDto.getQnaArray()) {
+                QnAImageEntity imageEntity = QnAImageEntity.builder()
+                        .quizEntity(quiz)
+                        .sequence_number((short) (i + 1))
+                        .image_url(qna.getQuestionUrl())
+                        .options(qna.getOptionArray())
+                        .answer(qna.getAnswerArray())
+                        .build();
+
+                imageEntities.add(imageEntity);
+                i++;
+            }
+            qnAImageRepository.saveAll(imageEntities);
+
+            return QuizDTO.UpdateStartResponse.builder()
+                    .nextRequest(false)
+                    .thumbnailUrl(null)
+                    .uploadUrlArray(null)
+                    .build();
+        }
+
+
+
+
+
+
+
+        return null;
+    }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -150,6 +205,9 @@ public class QuizServiceImpl implements QuizService {
         // 퀴즈 존재 여부 확인
         QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(commonDto.getQuizId()))
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+
+        // 퀴즈 관리 권한 확인
+        boolean owner = commonDto.getUserId() != null && commonDto.getUserId().equals(quiz.getUserEntity().getId());
 
         // 문제 응답 배열 생성
         QuizDTO.GetResponse.QnA[] qnas = quiz.getQnAImageEntities().stream()
@@ -163,6 +221,7 @@ public class QuizServiceImpl implements QuizService {
 
         return QuizDTO.GetResponse.builder()
                 .quizId(commonDto.getQuizId())
+                .owner(owner)
                 .title(quiz.getTitle())
                 .comment(quiz.getDescription())
                 .type(quiz.getType())

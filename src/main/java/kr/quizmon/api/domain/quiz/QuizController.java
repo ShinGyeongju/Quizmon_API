@@ -14,9 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,20 +26,18 @@ public class QuizController {
     private final S3Manager s3Manager;
     private final RedisIO redisIO;
 
-    private final List<String> QUIZ_TYPE = List.of("IMAGE", "SOUND");
-
     // TEST
     @GetMapping("/test")
-    public String testApi(@RequestPart(value = "quizId") String quizId) {
+    public String testApi(Authentication auth) {
 
         //redisIO.deleteQuiz("0691489a-2a9f-42e4-8246-2412c4a401fb");
 
 
-        return quizId;
+        return auth.getName();
     }
 
     /**
-     * 퀴즈 생성 시작
+     * 이미지 퀴즈 생성 시작
      */
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/image/start")
@@ -49,11 +45,6 @@ public class QuizController {
         if (bindingResult.hasErrors()) {
             ObjectError error = bindingResult.getAllErrors().get(0);
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
-        }
-
-        // 퀴즈 종류 유효성 검증
-        if (!QUIZ_TYPE.contains(requestDto.getType().toUpperCase())) {
-            throw new CustomApiException(ErrorCode.INVALID_VALUE);
         }
 
         // 인가된 사용자 id 설정
@@ -73,7 +64,7 @@ public class QuizController {
     }
 
     /**
-     * 퀴즈 생성 완료
+     * 이미지 퀴즈 생성 완료
      */
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}/image/end")
@@ -95,16 +86,34 @@ public class QuizController {
     }
 
     /**
-     * 퀴즈 수정
+     * 이미지 퀴즈 수정
      */
+//    @PreAuthorize("isAuthenticated()")
+//    @PutMapping("/{id}")
+//    public ResponseEntity<ResponseWrapper> updateQuizStartApi(@Valid @RequestBody QuizDTO.CreateRequest requestDto, BindingResult bindingResult, @PathVariable("id") String quizId, Authentication auth) {
+//        if (bindingResult.hasErrors()) {
+//            ObjectError error = bindingResult.getAllErrors().get(0);
+//            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+//        }
+//
+//        // 인가된 사용자 id 설정
+//        requestDto.setUserId(auth.getName());
+//        // UUID 설정
+//        requestDto.setQuizId(UUID.fromString(quizId));
+//
+//
+//    }
 
 
     /**
      * 상세 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseWrapper> getQuizApi(@PathVariable("id") String quizId) {
+    public ResponseEntity<ResponseWrapper> getQuizApi(@PathVariable("id") String quizId, Authentication auth) {
+        String userId = auth != null ? auth.getName() : null;
+
         QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
+                .userId(userId)
                 .quizId(quizId)
                 .build();
 
@@ -118,6 +127,14 @@ public class QuizController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * 목록 조회
+     */
+//    @GetMapping("/list")
+//    public ResponseEntity<ResponseWrapper> getQuizListApi() {
+//
+//    }
 
 
 }

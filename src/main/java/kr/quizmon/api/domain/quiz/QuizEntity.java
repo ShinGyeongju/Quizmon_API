@@ -76,4 +76,13 @@ public class QuizEntity {
     @OneToMany(mappedBy = "quizEntity")
     private List<QnASoundEntity> qnASoundEntities = new ArrayList<>();
 
+
+    public void updateQuiz(QuizDTO.UpdateRequest request) {
+        this.title = request.getTitle();
+        this.description = request.getComment();
+        this.limit_time = request.getLimitTime();
+        this.public_access = request.isPublicAccess();
+        this.random_question = request.isRandomQuestion();
+        this.multiple_choice = request.isMultipleChoice();
+    }
 }
