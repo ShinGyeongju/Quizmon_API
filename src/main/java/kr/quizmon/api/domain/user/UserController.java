@@ -172,6 +172,10 @@ public class UserController {
         //cookie.setSecure(true);
         response.addCookie(cookie);
 
+        response.setHeader("Set-Cookie", "Authorization="+loginResponse.getToken()+"; Secure; SameSite=None");
+        //response.addHeader("Set-Cookie", "Test2=TestCookieValue2; Secure; SameSite=None");
+        //response.addHeader("Set-Cookie", "Test3=TestCookieValue3; Secure; SameSite=None");
+
         UserDTO.CommonResponse responseBody = UserDTO.CommonResponse.builder()
                 .id(loginResponse.getId())
                 .build();
