@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import kr.quizmon.api.global.config.CustomConfig;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Arrays;
 import java.util.Date;
 
 @Component
@@ -28,13 +30,13 @@ public class JwtProvider {
 
     private long expirationHour;
     private Key secretKey;
-    private String headerName;
+    private String cookieName;
 
     @PostConstruct
     protected void init() {
         expirationHour = 1000L * 60 * 60 * customConfig.getJwt_expiration_hour();
         this.secretKey = Keys.hmacShaKeyFor(customConfig.getJwt_secret_key().getBytes(StandardCharsets.UTF_8));
-        headerName = customConfig.getJwt_header();
+        cookieName = customConfig.getJwt_Cookie_name();
     }
 
     // JWT 토큰 생성
@@ -67,9 +69,13 @@ public class JwtProvider {
         return Jwts.parserBuilder().setSigningKey(this.secretKey).build().parseClaimsJws(token).getBody().getExpiration();
     }
 
-    // Request Header에서 JWT 토큰 조회
+    // Request Cookie에서 JWT 토큰 조회
     public String resolveToken(HttpServletRequest request) {
-        return request.getHeader(headerName);
+        return Arrays.stream(request.getCookies())
+                .filter(cookie -> cookie.getName().equals(cookieName))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElseThrow(RuntimeException::new);
     }
 
     // JWT 토큰 유효성 검증

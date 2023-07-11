@@ -12,7 +12,7 @@ public class CustomConfig {
     private boolean allow_cors;
 
     // JWT
-    private String jwt_header;
+    private String jwt_Cookie_name;
     private String jwt_secret_key;
     private int jwt_expiration_hour;
 

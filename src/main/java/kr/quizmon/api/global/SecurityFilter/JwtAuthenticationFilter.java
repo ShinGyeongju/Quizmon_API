@@ -21,17 +21,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = jwtProvider.resolveToken(request);
+        try {
+            String token = jwtProvider.resolveToken(request);
 
-        // token 유효성 검증
-        if (token != null && jwtProvider.validateToken(token) && !redisIO.hasLogoutKey(token)) {
-            try {
+            // token 유효성 검증
+            if (token != null && jwtProvider.validateToken(token) && !redisIO.hasLogoutKey(token)) {
                 Authentication auth = jwtProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (UsernameNotFoundException ex) {
-                // Not found user
             }
+        } catch (Exception ex) {
+            // Not found user
+
         }
+
 
         filterChain.doFilter(request, response);
     }

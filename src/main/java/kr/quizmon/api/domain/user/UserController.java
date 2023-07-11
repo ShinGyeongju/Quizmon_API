@@ -1,5 +1,7 @@
 package kr.quizmon.api.domain.user;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
@@ -153,7 +155,7 @@ public class UserController {
      * 로그인
      */
     @PostMapping("/login")
-    public ResponseEntity<ResponseWrapper> loginApi(@Valid @RequestBody UserDTO.LoginRequest requestDto, BindingResult bindingResult) {
+    public ResponseEntity<ResponseWrapper> loginApi(@Valid @RequestBody UserDTO.LoginRequest requestDto, BindingResult bindingResult, HttpServletResponse response) {
         if (bindingResult.hasErrors()) {
             ObjectError error = bindingResult.getAllErrors().get(0);
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
@@ -161,13 +163,22 @@ public class UserController {
 
         UserDTO.LoginResponse responseBody = userService.login(requestDto);
 
-        ResponseWrapper response = ResponseWrapper.builder()
+        Cookie cookie = new Cookie("Authorization", responseBody.getToken());
+        cookie.setPath("/api");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(60 * 60 * 12);     // 12시간
+        //cookie.setDomain("SampleDomain.com");
+        //cookie.setSecure(true);
+
+        response.addCookie(cookie);
+
+        ResponseWrapper responseWrapper = ResponseWrapper.builder()
                 .code(200)
                 .message("OK")
                 .result(responseBody)
                 .build();
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(responseWrapper);
     }
 
     /**
