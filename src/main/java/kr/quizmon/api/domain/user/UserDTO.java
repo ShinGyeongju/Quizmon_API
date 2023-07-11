@@ -62,10 +62,10 @@ public class UserDTO {
     @Getter
     @NoArgsConstructor
     public static class LoginRequest {
-        @NotBlank(message = "유효하지 않은 ID입니다.")
+        @NotBlank(message = "유효하지 않은 사용자입니다.")
         private String id;
 
-        @NotBlank(message = "유효하지 않은 Password입니다.")
+        @NotBlank(message = "유효하지 않은 사용자입니다.")
         private String password;
     }
 
