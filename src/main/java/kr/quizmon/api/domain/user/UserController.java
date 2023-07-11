@@ -32,6 +32,26 @@ public class UserController {
     }
 
     /**
+     * 토큰 확인
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/check")
+    public ResponseEntity<ResponseWrapper> checkApi(Authentication auth) {
+        UserDTO.CheckResponse responseBody = UserDTO.CheckResponse.builder()
+                .id(auth.getName())
+                .valid(true)
+                .build();
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * ID 확인
      */
     @GetMapping("/{id}/check")
@@ -40,7 +60,7 @@ public class UserController {
                 .id(id)
                 .build();
 
-        UserDTO.CheckResponse responseBody = userService.checkUser(checkDto);
+        UserDTO.CheckUserResponse responseBody = userService.checkUser(checkDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(200)

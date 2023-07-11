@@ -86,6 +86,13 @@ public class UserDTO {
     @Builder
     public static class CheckResponse {
         private String id;
+        private boolean valid;
+    }
+
+    @Getter
+    @Builder
+    public static class CheckUserResponse {
+        private String id;
         private boolean idExists;
     }
 

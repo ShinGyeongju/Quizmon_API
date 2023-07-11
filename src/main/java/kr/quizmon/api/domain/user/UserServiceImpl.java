@@ -22,11 +22,11 @@ public class UserServiceImpl implements UserService {
     private final RedisIO redisIO;
 
     @Override
-    public UserDTO.CheckResponse checkUser(UserDTO.Check checkDto) {
+    public UserDTO.CheckUserResponse checkUser(UserDTO.Check checkDto) {
         // ID 중복 검사
         boolean idExists = userRepository.findById(checkDto.getId()).isPresent();
 
-        return UserDTO.CheckResponse.builder()
+        return UserDTO.CheckUserResponse.builder()
                 .id(checkDto.getId())
                 .idExists(idExists)
                 .build();
