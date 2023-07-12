@@ -70,12 +70,16 @@ public class JwtProvider {
     }
 
     // Request Cookie에서 JWT 토큰 조회
-    public String resolveToken(HttpServletRequest request) {
+    public String resolveCookieToken(HttpServletRequest request) {
         return Arrays.stream(request.getCookies())
                 .filter(cookie -> cookie.getName().equals(cookieName))
                 .findFirst()
                 .map(Cookie::getValue)
                 .orElseThrow(RuntimeException::new);
+    }
+
+    public String resolveHeaderToken(HttpServletRequest request) {
+        return request.getHeader(cookieName);
     }
 
     // JWT 토큰 유효성 검증

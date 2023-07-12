@@ -163,13 +163,13 @@ public class UserController {
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
         }
 
-        UserDTO.LoginResponse loginResponse = userService.login(requestDto);
+        UserDTO.LoginResponse responseBody = userService.login(requestDto);
 
         // 쿠키 설정
         if (customConfig.isAllow_cors()) {
-            response.setHeader("Set-Cookie", customConfig.getJwt_Cookie_name() + "=" + loginResponse.getToken() + "; Domain=test.com; Secure; path=/; SameSite=None");
+            response.setHeader("Set-Cookie", customConfig.getJwt_Cookie_name() + "=" + responseBody.getToken() + "; Domain=test.com; Secure; path=/; SameSite=None");
         } else {
-            Cookie cookie = new Cookie(customConfig.getJwt_Cookie_name(), loginResponse.getToken());
+            Cookie cookie = new Cookie(customConfig.getJwt_Cookie_name(), responseBody.getToken());
             cookie.setPath("/");
             cookie.setHttpOnly(true);
             cookie.setMaxAge(60 * 60 * 12);     // 12시간
@@ -177,10 +177,6 @@ public class UserController {
             cookie.setSecure(true);
             response.addCookie(cookie);
         }
-
-        UserDTO.CommonResponse responseBody = UserDTO.CommonResponse.builder()
-                .id(loginResponse.getId())
-                .build();
 
         ResponseWrapper responseWrapper = ResponseWrapper.builder()
                 .code(200)
