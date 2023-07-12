@@ -43,6 +43,8 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("https://quizmon.kr");
         configuration.addAllowedOrigin("https://www.quizmon.kr");
         configuration.addAllowedOrigin("https://localhost:3001");
+        configuration.addAllowedOrigin("http://test.com:3000");
+        configuration.addAllowedOrigin("https://test.com:3001");
 
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
