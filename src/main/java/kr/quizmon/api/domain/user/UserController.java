@@ -164,16 +164,16 @@ public class UserController {
         UserDTO.LoginResponse loginResponse = userService.login(requestDto);
 
         // 쿠키 설정
-//        Cookie cookie = new Cookie("Authorization", loginResponse.getToken());
-//        cookie.setPath("/api");
-//        cookie.setHttpOnly(false);
-//        cookie.setMaxAge(60 * 60 * 12);     // 12시간
+        Cookie cookie = new Cookie("Authorization", loginResponse.getToken());
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(60 * 60 * 12);     // 12시간
 
         //cookie.setDomain("SampleDomain.com");
         //cookie.setSecure(true);
-        //response.addCookie(cookie);
+        response.addCookie(cookie);
 
-        response.setHeader("Set-Cookie", "Authorization="+loginResponse.getToken()+"; Secure; path=/; SameSite=None");
+        //response.setHeader("Set-Cookie", "Authorization="+loginResponse.getToken()+"; Secure; path=/; SameSite=None");
         //response.addHeader("Set-Cookie", "Test2=TestCookieValue2; Secure; SameSite=None");
         //response.addHeader("Set-Cookie", "Test3=TestCookieValue3; Secure; SameSite=None");
 
