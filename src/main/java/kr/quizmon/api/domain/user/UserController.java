@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
 import kr.quizmon.api.global.common.ResponseWrapper;
+import kr.quizmon.api.global.config.CustomConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.Objects;
 @RequestMapping("/api/v1/user")
 public class UserController {
     private final UserService userService;
+    private final CustomConfig customConfig;
 
     // TEST
     @PreAuthorize("isAuthenticated()")
@@ -164,18 +166,17 @@ public class UserController {
         UserDTO.LoginResponse loginResponse = userService.login(requestDto);
 
         // 쿠키 설정
-//        Cookie cookie = new Cookie("Authorization", loginResponse.getToken());
-//        cookie.setPath("/");
-//        cookie.setHttpOnly(true);
-//        cookie.setMaxAge(60 * 60 * 12);     // 12시간
-
-        //cookie.setDomain("SampleDomain.com");
-        //cookie.setSecure(true);
-        //response.addCookie(cookie);
-
-        response.setHeader("Set-Cookie", "Authorization="+loginResponse.getToken()+"; Secure; path=/; SameSite=None");
-        //response.addHeader("Set-Cookie", "Test2=TestCookieValue2; Secure; SameSite=None");
-        //response.addHeader("Set-Cookie", "Test3=TestCookieValue3; Secure; SameSite=None");
+        if (customConfig.isAllow_cors()) {
+            response.setHeader("Set-Cookie", customConfig.getJwt_Cookie_name() + "=" + loginResponse.getToken() + "; Secure; path=/; SameSite=None");
+        } else {
+            Cookie cookie = new Cookie(customConfig.getJwt_Cookie_name(), loginResponse.getToken());
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(60 * 60 * 12);     // 12시간
+            cookie.setDomain("quizmon.kr");
+            cookie.setSecure(true);
+            response.addCookie(cookie);
+        }
 
         UserDTO.CommonResponse responseBody = UserDTO.CommonResponse.builder()
                 .id(loginResponse.getId())
