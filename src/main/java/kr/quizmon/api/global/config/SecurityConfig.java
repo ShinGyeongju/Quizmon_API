@@ -40,10 +40,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.addAllowedOrigin("*");
+        configuration.addAllowedOrigin("https://*.quizmon.kr");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
-        //configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
