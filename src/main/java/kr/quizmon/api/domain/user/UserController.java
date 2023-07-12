@@ -167,7 +167,7 @@ public class UserController {
 
         // 쿠키 설정
         if (customConfig.isAllow_cors()) {
-            response.setHeader("Set-Cookie", customConfig.getJwt_Cookie_name() + "=" + loginResponse.getToken() + "; Domain=localhost:3001; Secure; path=/; SameSite=None");
+            response.setHeader("Set-Cookie", customConfig.getJwt_Cookie_name() + "=" + loginResponse.getToken() + "; Domain=test.com; Secure; path=/; SameSite=None");
         } else {
             Cookie cookie = new Cookie(customConfig.getJwt_Cookie_name(), loginResponse.getToken());
             cookie.setPath("/");
