@@ -40,7 +40,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.addAllowedOrigin("https://*.quizmon.kr");
+        configuration.addAllowedOrigin("https://quizmon.kr");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);
@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .sessionManagement((sessionManagement) -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(new HmacAuthenticationFilter(customConfig, hmacProvider), UsernamePasswordAuthenticationFilter.class)
+                //.addFilterBefore(new HmacAuthenticationFilter(customConfig, hmacProvider), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, redisIO), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
