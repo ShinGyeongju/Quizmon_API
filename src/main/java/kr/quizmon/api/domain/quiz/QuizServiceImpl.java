@@ -33,7 +33,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     @Transactional(readOnly = true)
-    public QuizDTO.CreateStartResponse createStartQuiz(QuizDTO.CreateRequest requestDto) {
+    public QuizDTO.CreateResponse createImageQuiz(QuizDTO.CreateRequest requestDto) {
         String quizId = requestDto.getQuizId().toString();
 
         // Signature Hash Code 생성
@@ -71,16 +71,14 @@ public class QuizServiceImpl implements QuizService {
             i++;
         }
 
-        // Redis용 객체 생성
-        QuizDTO.CreateRedis quiz = requestDto.toRedisEntity(thumbnailPubUrl, imageEntities);
-
         // Redis에 임시 저장
+        QuizDTO.CreateRedis quiz = requestDto.toRedisEntity(thumbnailPubUrl, imageEntities);
         redisIO.setQuiz(quizId, quiz, s3Expiration);
 
         // presignedUrl 배열 반환
         String[] urlArray = presignedUrls.values().toArray(String[]::new);
 
-        return QuizDTO.CreateStartResponse.builder()
+        return QuizDTO.CreateResponse.builder()
                 .quizId(quizId)
                 .thumbnailUrl(thumbnailPreUrl)
                 .uploadUrlArray(urlArray)
@@ -89,13 +87,8 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     @Transactional
-    public QuizDTO.CreateEndResponse createEndQuiz(QuizDTO.CommonRequest commonDto) {
+    public QuizDTO.CheckResponse checkImageQuiz(QuizDTO.CommonRequest commonDto) {
         String quizId = commonDto.getQuizId();
-
-        QuizDTO.CreateEndResponse errorResponse = QuizDTO.CreateEndResponse.builder()
-                .quizId(quizId)
-                .succeed(false)
-                .build();
 
         try {
             // Redis에서 퀴즈 정보 가져오기
@@ -132,13 +125,17 @@ public class QuizServiceImpl implements QuizService {
 
             // 이미지 파일 삭제
             s3Manager.deleteObject(quizId);
+
             // Redis에서 퀴즈 정보 삭제
             redisIO.deleteQuiz(quizId);
 
-            return errorResponse;
+            return QuizDTO.CheckResponse.builder()
+                    .quizId(quizId)
+                    .succeed(false)
+                    .build();
         }
 
-        return QuizDTO.CreateEndResponse.builder()
+        return QuizDTO.CheckResponse.builder()
                 .quizId(quizId)
                 .succeed(true)
                 .build();
@@ -146,13 +143,13 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     @Transactional
-    public QuizDTO.UpdateStartResponse updateStartQuiz(QuizDTO.UpdateRequest requestDto) {
+    public QuizDTO.UpdateResponse updateImageQuiz(QuizDTO.UpdateRequest requestDto) {
         String quizId = requestDto.getQuizId().toString();
 
         // 퀴즈 존재 여부 확인
         QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(quizId))
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
-System.out.println(quiz);
+
         // ID 확인
         if (!quiz.getUserEntity().getId().equals(requestDto.getUserId())) {
             throw new CustomApiException(ErrorCode.INVALID_QUIZ_ID);
@@ -171,7 +168,7 @@ System.out.println(quiz);
             // 기존 문제 전체 삭제
             qnAImageRepository.deleteAllByQuizId(requestDto.getQuizId());
 
-            // 요청 문제 추가
+            // 요청 문제 저장
             List<QnAImageEntity> imageEntities = new ArrayList<>(requestDto.getQnaArray().length);
             int i = 0;
             for (QuizDTO.UpdateRequest.QnA qna : requestDto.getQnaArray()) {
@@ -188,7 +185,7 @@ System.out.println(quiz);
             }
             qnAImageRepository.saveAll(imageEntities);
 
-            return QuizDTO.UpdateStartResponse.builder()
+            return QuizDTO.UpdateResponse.builder()
                     .quizId(quizId)
                     .nextRequest(false)
                     .thumbnailUrl(null)
@@ -213,14 +210,6 @@ System.out.println(quiz);
                 : null;
 
         // 새로운 이미지 수 만큼 presignedUrl 생성
-//        int startIndex = Arrays.stream(requestDto.getQnaArray())
-//                .filter(qnA -> qnA.getQuestionUrl() != null)
-//                .map(qnA -> {
-//                    String[] splitArr = qnA.getQuestionUrl().split("/");
-//                    return Integer.parseInt(splitArr[splitArr.length - 1]);
-//                })
-//                .max(Comparator.comparingInt(qnA -> qnA))
-//                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 이미지 url입니다."));
         int startIndex = quiz.getQnAImageEntities().stream()
                 .map(qna -> {
                     String[] splitQna = qna.getImage_url().split("/");
@@ -233,7 +222,7 @@ System.out.println(quiz);
         // 각 문제 이미지의 S3 publicUrl 설정
         List<QnAImageEntity> imageEntities = new ArrayList<>(requestDto.getQnaArray().length);
         int i = 0;
-        ArrayList<String> publicUrlList = (ArrayList<String>) presignedUrls.keySet().stream().toList();
+        List<String> publicUrlList = new ArrayList<>(presignedUrls.keySet().stream().toList());
         for (QuizDTO.UpdateRequest.QnA qna : requestDto.getQnaArray()) {
             String imageUrl = qna.getQuestionUrl() == null ? publicUrlList.remove(0) : qna.getQuestionUrl();
 
@@ -248,22 +237,22 @@ System.out.println(quiz);
             i++;
         }
 
-
-        // Redis용 객체 생성
-        QuizDTO.CreateRedis quizRedis = requestDto.toRedisEntity(thumbnailPubUrl, imageEntities);
-
         // Redis에 임시 저장
+        QuizDTO.CreateRedis quizRedis = requestDto.toRedisEntity(thumbnailPubUrl, imageEntities);
         redisIO.setQuiz(quizId, quizRedis, s3Expiration);
 
         // presignedUrl 배열 반환
         String[] urlArray = presignedUrls.values().toArray(String[]::new);
 
-        return QuizDTO.UpdateStartResponse.builder()
+        return QuizDTO.UpdateResponse.builder()
+                .quizId(quizId)
                 .nextRequest(true)
                 .thumbnailUrl(thumbnailPreUrl)
                 .uploadUrlArray(urlArray)
                 .build();
     }
+
+
 
 
     @Override

@@ -26,15 +26,6 @@ public class UserController {
     private final UserService userService;
     private final CustomConfig customConfig;
 
-    // TEST
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping()
-    public String testApi(Authentication auth) {
-        System.out.println(auth.getAuthorities());
-        System.out.println(SecurityContextHolder.getContext().getAuthentication());
-        return "TEST API";
-    }
-
     /**
      * 토큰 확인
      */

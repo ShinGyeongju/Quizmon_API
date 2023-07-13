@@ -192,11 +192,9 @@ public class QuizDTO {
         private String quizId;
     }
 
-
-
     @Getter
     @Builder
-    static class CreateStartResponse {
+    static class CreateResponse {
         private String quizId;
         private String thumbnailUrl;
         private String[] uploadUrlArray;
@@ -204,7 +202,16 @@ public class QuizDTO {
 
     @Getter
     @Builder
-    static class CreateEndResponse {
+    public static class UpdateResponse {
+        private String quizId;
+        private boolean nextRequest;
+        private String thumbnailUrl;
+        private String[] uploadUrlArray;
+    }
+
+    @Getter
+    @Builder
+    static class CheckResponse {
         private String quizId;
         private boolean succeed;
     }
@@ -233,15 +240,6 @@ public class QuizDTO {
             private String[] optionArray;
             private String[] answerArray;
         }
-    }
-
-    @Getter
-    @Builder
-    public static class UpdateStartResponse {
-        private String quizId;
-        private boolean nextRequest;
-        private String thumbnailUrl;
-        private String[] uploadUrlArray;
     }
 
 }

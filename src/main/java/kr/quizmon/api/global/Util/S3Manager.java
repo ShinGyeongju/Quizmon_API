@@ -16,6 +16,8 @@ public class S3Manager {
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
+    @Value("${custom.properties.s3_presignedurl_expiration_millisec}")
+    private long s3Expiration;
 
     private final String PREFIX_IMAGE = "static/image/";
 
@@ -43,7 +45,7 @@ public class S3Manager {
         String objectKey = PREFIX_IMAGE + quizId + "/" + fileName;
 
         // Presigned Url 유효 기간 5분으로 설정
-        Date expiration = new Date(new Date().getTime() + (1000 * 60 * 5));
+        Date expiration = new Date(new Date().getTime() + s3Expiration);
 
         // PresignedUrl 생성
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucket, objectKey)

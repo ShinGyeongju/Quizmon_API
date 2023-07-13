@@ -1,8 +1,7 @@
 package kr.quizmon.api.domain.quiz;
 
 import jakarta.validation.Valid;
-import kr.quizmon.api.global.Util.RedisIO;
-import kr.quizmon.api.global.Util.S3Manager;
+
 import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
 import kr.quizmon.api.global.common.ResponseWrapper;
@@ -15,7 +14,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,8 +21,6 @@ import java.util.UUID;
 @RequestMapping("/api/quiz")
 public class QuizController {
     private final QuizService quizService;
-    private final S3Manager s3Manager;
-    private final RedisIO redisIO;
 
     // TEST
     @GetMapping("/test")
@@ -38,11 +34,11 @@ public class QuizController {
     }
 
     /**
-     * 이미지 퀴즈 생성 시작
+     * 이미지 퀴즈 생성
      */
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/image/start")
-    public ResponseEntity<ResponseWrapper> createQuizStartApi(@Valid @RequestBody QuizDTO.CreateRequest requestDto, BindingResult bindingResult, Authentication auth) {
+    @PostMapping("/image")
+    public ResponseEntity<ResponseWrapper> createImageQuizApi(@Valid @RequestBody QuizDTO.CreateRequest requestDto, BindingResult bindingResult, Authentication auth) {
         if (bindingResult.hasErrors()) {
             ObjectError error = bindingResult.getAllErrors().get(0);
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
@@ -53,7 +49,7 @@ public class QuizController {
         // UUID 설정
         requestDto.setQuizId(UUID.randomUUID());
 
-        QuizDTO.CreateStartResponse responseBody = quizService.createStartQuiz(requestDto);
+        QuizDTO.CreateResponse responseBody = quizService.createImageQuiz(requestDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(200)
@@ -65,33 +61,11 @@ public class QuizController {
     }
 
     /**
-     * 이미지 퀴즈 생성 완료
-     */
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping("/{id}/image/end")
-    public ResponseEntity<ResponseWrapper> createQuizEndApi(@PathVariable("id") String quizId, Authentication auth) {
-        QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
-                .userId(auth.getName())
-                .quizId(quizId)
-                .build();
-
-        QuizDTO.CreateEndResponse responseBody = quizService.createEndQuiz(commonDto);
-
-        ResponseWrapper response = ResponseWrapper.builder()
-                .code(200)
-                .message("OK")
-                .result(responseBody)
-                .build();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    /**
      * 이미지 퀴즈 수정
      */
     @PreAuthorize("isAuthenticated()")
-    @PutMapping("/{id}")
-    public ResponseEntity<ResponseWrapper> updateQuizStartApi(@Valid @RequestBody QuizDTO.UpdateRequest requestDto, BindingResult bindingResult, @PathVariable("id") String quizId, Authentication auth) {
+    @PutMapping("/{id}/image")
+    public ResponseEntity<ResponseWrapper> updateImageQuizApi(@Valid @RequestBody QuizDTO.UpdateRequest requestDto, BindingResult bindingResult, @PathVariable("id") String quizId, Authentication auth) {
         if (bindingResult.hasErrors()) {
             ObjectError error = bindingResult.getAllErrors().get(0);
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
@@ -102,7 +76,7 @@ public class QuizController {
         // UUID 설정
         requestDto.setQuizId(UUID.fromString(quizId));
 
-        QuizDTO.UpdateStartResponse responseBody = quizService.updateStartQuiz(requestDto);
+        QuizDTO.UpdateResponse responseBody = quizService.updateImageQuiz(requestDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(200)
@@ -113,6 +87,27 @@ public class QuizController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 이미지 퀴즈 확인
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{id}/image/check")
+    public ResponseEntity<ResponseWrapper> checkImageQuizApi(@PathVariable("id") String quizId, Authentication auth) {
+        QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
+                .userId(auth.getName())
+                .quizId(quizId)
+                .build();
+
+        QuizDTO.CheckResponse responseBody = quizService.checkImageQuiz(commonDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     /**
      * 상세 조회
