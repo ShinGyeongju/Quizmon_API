@@ -36,7 +36,7 @@ public class JwtProvider {
     protected void init() {
         expirationHour = 1000L * 60 * 60 * customConfig.getJwt_expiration_hour();
         this.secretKey = Keys.hmacShaKeyFor(customConfig.getJwt_secret_key().getBytes(StandardCharsets.UTF_8));
-        cookieName = customConfig.getJwt_Cookie_name();
+        cookieName = customConfig.getJwt_cookie_name();
     }
 
     // JWT 토큰 생성
@@ -71,13 +71,18 @@ public class JwtProvider {
 
     // Request Cookie에서 JWT 토큰 조회
     public String resolveCookieToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) return null;
+
         return Arrays.stream(request.getCookies())
                 .filter(cookie -> cookie.getName().equals(cookieName))
                 .findFirst()
                 .map(Cookie::getValue)
-                .orElseThrow(RuntimeException::new);
+                .orElse(null);
     }
 
+    // Request Header에서 JWT 토큰 조회
     public String resolveHeaderToken(HttpServletRequest request) {
         return request.getHeader(cookieName);
     }

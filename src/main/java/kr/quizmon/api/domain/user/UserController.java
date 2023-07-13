@@ -167,13 +167,10 @@ public class UserController {
 
         // 쿠키 설정
         if (customConfig.isAllow_cors()) {
-            response.setHeader("Set-Cookie", customConfig.getJwt_Cookie_name() + "=" + responseBody.getToken() + "; Domain=test.com; Secure; path=/; SameSite=None");
-        } else {
-            Cookie cookie = new Cookie(customConfig.getJwt_Cookie_name(), responseBody.getToken());
+            Cookie cookie = new Cookie(customConfig.getJwt_cookie_name(), responseBody.getToken());
             cookie.setPath("/");
             cookie.setHttpOnly(true);
             cookie.setMaxAge(60 * 60 * 12);     // 12시간
-            cookie.setDomain("quizmon.kr");
             cookie.setSecure(true);
             response.addCookie(cookie);
         }
