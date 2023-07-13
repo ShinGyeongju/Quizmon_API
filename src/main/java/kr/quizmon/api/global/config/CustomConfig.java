@@ -12,7 +12,7 @@ public class CustomConfig {
     private boolean allow_cors;
 
     // JWT
-    private String jwt_Cookie_name;
+    private String jwt_cookie_name;
     private String jwt_secret_key;
     private int jwt_expiration_hour;
 
@@ -20,5 +20,6 @@ public class CustomConfig {
     private String hmac_header;
     private String hmac_secret_key;
     private int hmac_expiration_minute;
+
 
 }

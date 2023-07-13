@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface QuizRepository extends JpaRepository<QuizEntity, UUID> {
     Optional<QuizEntity> findByQuizId(UUID id);
 
+
 }

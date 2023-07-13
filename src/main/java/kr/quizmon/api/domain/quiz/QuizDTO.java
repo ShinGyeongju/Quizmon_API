@@ -160,6 +160,22 @@ public class QuizDTO {
             @NotEmpty(message = "유효하지 않은 정답 배열입니다.")
             private String[] answerArray;
         }
+
+        public CreateRedis toRedisEntity(String thumbnailUrl, List<QnAImageEntity> images) {
+            return CreateRedis.builder()
+                    .quizId(quizId)
+                    .title(title)
+                    .comment(comment)
+                    .type("IMAGE")
+                    .limitTime(limitTime)
+                    .thumbnailUrl(thumbnailUrl)
+                    .publicAccess(publicAccess)
+                    .randomQuestion(randomQuestion)
+                    .multipleChoice(multipleChoice)
+                    .questionCount(images.size())
+                    .imageList(images)
+                    .build();
+        }
     }
 
     @Getter

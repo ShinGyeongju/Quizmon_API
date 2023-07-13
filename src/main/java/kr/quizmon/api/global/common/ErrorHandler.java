@@ -50,8 +50,8 @@ public class ErrorHandler {
                 .result(null)
                 .build();
 
-        log.error(ex.toString());
-        //ex.printStackTrace();
+        //log.error(ex.toString());
+        ex.printStackTrace();
 
         return ResponseEntity.status(error.getHttpStatus()).body(response);
     }

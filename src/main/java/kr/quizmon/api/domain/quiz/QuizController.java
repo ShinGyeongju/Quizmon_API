@@ -28,6 +28,7 @@ public class QuizController {
 
     // TEST
     @GetMapping("/test")
+    @PreAuthorize("isAuthenticated()")
     public String testApi(Authentication auth) {
 
         //redisIO.deleteQuiz("0691489a-2a9f-42e4-8246-2412c4a401fb");
@@ -88,21 +89,29 @@ public class QuizController {
     /**
      * 이미지 퀴즈 수정
      */
-//    @PreAuthorize("isAuthenticated()")
-//    @PutMapping("/{id}")
-//    public ResponseEntity<ResponseWrapper> updateQuizStartApi(@Valid @RequestBody QuizDTO.CreateRequest requestDto, BindingResult bindingResult, @PathVariable("id") String quizId, Authentication auth) {
-//        if (bindingResult.hasErrors()) {
-//            ObjectError error = bindingResult.getAllErrors().get(0);
-//            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
-//        }
-//
-//        // 인가된 사용자 id 설정
-//        requestDto.setUserId(auth.getName());
-//        // UUID 설정
-//        requestDto.setQuizId(UUID.fromString(quizId));
-//
-//
-//    }
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseWrapper> updateQuizStartApi(@Valid @RequestBody QuizDTO.UpdateRequest requestDto, BindingResult bindingResult, @PathVariable("id") String quizId, Authentication auth) {
+        if (bindingResult.hasErrors()) {
+            ObjectError error = bindingResult.getAllErrors().get(0);
+            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+        }
+
+        // 인가된 사용자 id 설정
+        requestDto.setUserId(auth.getName());
+        // UUID 설정
+        requestDto.setQuizId(UUID.fromString(quizId));
+
+        QuizDTO.UpdateStartResponse responseBody = quizService.updateStartQuiz(requestDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 
     /**

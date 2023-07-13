@@ -26,8 +26,10 @@ public class QuizServiceImpl implements QuizService {
     private final HmacProvider hmacProvider;
     private final S3Manager s3Manager;
 
-    @Value(("${custom.properties.s3_presignedurl_signature_key}"))
+    @Value("${custom.properties.s3_presignedurl_signature_key}")
     private String signatureKey;
+    @Value("${custom.properties.s3_presignedurl_expiration_millisec}")
+    private long s3Expiration;
 
     @Override
     @Transactional(readOnly = true)
@@ -73,8 +75,7 @@ public class QuizServiceImpl implements QuizService {
         QuizDTO.CreateRedis quiz = requestDto.toRedisEntity(thumbnailPubUrl, imageEntities);
 
         // Redis에 임시 저장
-        long expiration = 1000 * 60 * 5;
-        redisIO.setQuiz(quizId, quiz, expiration);
+        redisIO.setQuiz(quizId, quiz, s3Expiration);
 
         // presignedUrl 배열 반환
         String[] urlArray = presignedUrls.values().toArray(String[]::new);
@@ -151,19 +152,24 @@ public class QuizServiceImpl implements QuizService {
         // 퀴즈 존재 여부 확인
         QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(quizId))
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+System.out.println(quiz);
+        // ID 확인
+        if (!quiz.getUserEntity().getId().equals(requestDto.getUserId())) {
+            throw new CustomApiException(ErrorCode.INVALID_QUIZ_ID);
+        }
 
         // 이미지 업로드 여부 확인
-        Optional<QuizDTO.UpdateRequest.QnA> containsNull = Arrays.stream(requestDto.getQnaArray()).
-                filter(qna -> qna.getQuestionUrl() == null).
-                findFirst();
+        int containsNullCount = (int) Arrays.stream(requestDto.getQnaArray()).
+                filter(qna -> qna.getQuestionUrl() == null)
+                .count();
 
         // 업로드할 이미지가 없으면 덮어쓰고 응답
-        if (containsNull.isEmpty() && !requestDto.isThumbnail()) {
+        if (containsNullCount == 0 && !requestDto.isThumbnail()) {
             // 퀴즈 기본 정보 수정
             quiz.updateQuiz(requestDto);
 
             // 기존 문제 전체 삭제
-            qnAImageRepository.deleteAllByQuizId(quizId);
+            qnAImageRepository.deleteAllByQuizId(requestDto.getQuizId());
 
             // 요청 문제 추가
             List<QnAImageEntity> imageEntities = new ArrayList<>(requestDto.getQnaArray().length);
@@ -183,19 +189,80 @@ public class QuizServiceImpl implements QuizService {
             qnAImageRepository.saveAll(imageEntities);
 
             return QuizDTO.UpdateStartResponse.builder()
+                    .quizId(quizId)
                     .nextRequest(false)
                     .thumbnailUrl(null)
                     .uploadUrlArray(null)
                     .build();
         }
 
+        // Signature Hash Code 생성
+        String signatureCode;
+        try {
+            signatureCode = hmacProvider.genHmacBase64Code(signatureKey, requestDto.getSignatureMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // 대표 이미지 URL 설정
+        String thumbnailPreUrl = requestDto.isThumbnail()
+                ? s3Manager.genPutPresignedUrl(quizId, "thumbnailImage", signatureCode)
+                : null;
+        String thumbnailPubUrl = requestDto.isThumbnail()
+                ? s3Manager.getPublicUrl(quizId, "thumbnailImage")
+                : null;
+
+        // 새로운 이미지 수 만큼 presignedUrl 생성
+//        int startIndex = Arrays.stream(requestDto.getQnaArray())
+//                .filter(qnA -> qnA.getQuestionUrl() != null)
+//                .map(qnA -> {
+//                    String[] splitArr = qnA.getQuestionUrl().split("/");
+//                    return Integer.parseInt(splitArr[splitArr.length - 1]);
+//                })
+//                .max(Comparator.comparingInt(qnA -> qnA))
+//                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 이미지 url입니다."));
+        int startIndex = quiz.getQnAImageEntities().stream()
+                .map(qna -> {
+                    String[] splitQna = qna.getImage_url().split("/");
+                    return Integer.parseInt(splitQna[splitQna.length - 1]);
+                })
+                .max(Comparator.comparingInt(qna -> qna))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 이미지 url입니다."));
+        Map<String, String> presignedUrls = s3Manager.genPutPresignedUrl(quizId, startIndex, containsNullCount, signatureCode);
+
+        // 각 문제 이미지의 S3 publicUrl 설정
+        List<QnAImageEntity> imageEntities = new ArrayList<>(requestDto.getQnaArray().length);
+        int i = 0;
+        ArrayList<String> publicUrlList = (ArrayList<String>) presignedUrls.keySet().stream().toList();
+        for (QuizDTO.UpdateRequest.QnA qna : requestDto.getQnaArray()) {
+            String imageUrl = qna.getQuestionUrl() == null ? publicUrlList.remove(0) : qna.getQuestionUrl();
+
+            QnAImageEntity imageEntity = QnAImageEntity.builder()
+                    .sequence_number((short) (i + 1))
+                    .image_url(imageUrl)
+                    .options(qna.getOptionArray())
+                    .answer(qna.getAnswerArray())
+                    .build();
+
+            imageEntities.add(imageEntity);
+            i++;
+        }
 
 
+        // Redis용 객체 생성
+        QuizDTO.CreateRedis quizRedis = requestDto.toRedisEntity(thumbnailPubUrl, imageEntities);
 
+        // Redis에 임시 저장
+        redisIO.setQuiz(quizId, quizRedis, s3Expiration);
 
+        // presignedUrl 배열 반환
+        String[] urlArray = presignedUrls.values().toArray(String[]::new);
 
-
-        return null;
+        return QuizDTO.UpdateStartResponse.builder()
+                .nextRequest(true)
+                .thumbnailUrl(thumbnailPreUrl)
+                .uploadUrlArray(urlArray)
+                .build();
     }
 
 
@@ -235,5 +302,7 @@ public class QuizServiceImpl implements QuizService {
                 .qnaArray(qnas)
                 .build();
     }
+
+
 
 }

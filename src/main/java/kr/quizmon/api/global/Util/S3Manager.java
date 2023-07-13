@@ -20,9 +20,13 @@ public class S3Manager {
     private final String PREFIX_IMAGE = "static/image/";
 
     public Map<String, String> genPutPresignedUrl(String quizId, int count, String hashedSignature) {
+        return genPutPresignedUrl(quizId, 0, count, hashedSignature);
+    }
+
+    public Map<String, String> genPutPresignedUrl(String quizId, int startIndex, int count, String hashedSignature) {
         Map<String, String> result = new LinkedHashMap<>();
 
-        for (int i = 0; i < count; i++) {
+        for (int i = startIndex; i < count + startIndex; i++) {
             String fileName = String.valueOf(i + 1);
 
             String presignedUrl = genPutPresignedUrl(quizId, fileName, hashedSignature);
