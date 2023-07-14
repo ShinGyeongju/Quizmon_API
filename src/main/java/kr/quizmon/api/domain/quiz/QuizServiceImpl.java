@@ -324,7 +324,29 @@ public class QuizServiceImpl implements QuizService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public QuizDTO.CommonResponse deleteQuiz(QuizDTO.CommonRequest commonDto) {
+        // 퀴즈 존재 여부 확인
+        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(commonDto.getQuizId()))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
 
+        // ID 확인
+        String quizOwner = quiz.getUserEntity().getId();
+        if (!quizOwner.equals(commonDto.getUserId())) {
+            throw new CustomApiException(ErrorCode.INVALID_USER);
+        }
+
+        // 퀴즈 삭제
+        quizRepository.delete(quiz);
+
+        // 이미지 파일 삭제
+        s3Manager.deleteObject(commonDto.getQuizId());
+
+        return QuizDTO.CommonResponse.builder()
+                .quizId(commonDto.getQuizId())
+                .build();
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -334,8 +356,9 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
 
         // 퀴즈 관리 권한 확인
-        boolean owner = commonDto.getUserId() != null && commonDto.getUserId().equals(quiz.getUserEntity().getId());
+        boolean isOwner = commonDto.getUserId() != null && commonDto.getUserId().equals(quiz.getUserEntity().getId());
 
+        // TODO: 퀴즈 속성에 따라 다른 처리 필요
         // 문제 응답 배열 생성
         QuizDTO.GetResponse.QnA[] qnas = quiz.getQnAImageEntities().stream()
                 .sorted(Comparator.comparing(QnAImageEntity::getSequence_number))
@@ -348,7 +371,7 @@ public class QuizServiceImpl implements QuizService {
 
         return QuizDTO.GetResponse.builder()
                 .quizId(commonDto.getQuizId())
-                .owner(owner)
+                .isOwner(isOwner)
                 .title(quiz.getTitle())
                 .comment(quiz.getDescription())
                 .type(quiz.getType())

@@ -112,6 +112,28 @@ public class QuizController {
     }
 
     /**
+     * 삭제
+     */
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseWrapper> deleteQuizApi(@PathVariable("id") String quizId, Authentication auth) {
+        QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
+                .userId(auth.getName())
+                .quizId(quizId)
+                .build();
+
+        QuizDTO.CommonResponse responseBody = quizService.deleteQuiz(commonDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * 상세 조회
      */
     @GetMapping("/{id}")

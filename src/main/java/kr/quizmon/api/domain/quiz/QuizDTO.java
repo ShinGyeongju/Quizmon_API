@@ -223,7 +223,7 @@ public class QuizDTO {
     @Builder
     static class GetResponse {
         private String quizId;
-        private boolean owner;
+        private boolean isOwner;
         private String title;
         private String comment;
         private String type;
