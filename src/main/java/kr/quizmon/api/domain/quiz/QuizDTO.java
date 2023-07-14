@@ -60,9 +60,9 @@ public class QuizDTO {
         public CreateRedis toRedisEntity(String thumbnailUrl, List<QnAImageEntity> images) {
             return CreateRedis.builder()
                     .quizId(quizId)
+                    .update(false)
                     .title(title)
                     .comment(comment)
-                    .type("IMAGE")
                     .limitTime(limitTime)
                     .thumbnailUrl(thumbnailUrl)
                     .publicAccess(publicAccess)
@@ -80,9 +80,9 @@ public class QuizDTO {
     @AllArgsConstructor
     public static class CreateRedis {
         private UUID quizId;
+        private boolean update;
         private String title;
         private String comment;
-        private String type;
         private short limitTime;
         private String thumbnailUrl;
         private boolean publicAccess;
@@ -97,7 +97,7 @@ public class QuizDTO {
                     .userEntity(user)
                     .title(title)
                     .description(comment)
-                    .type(type)
+                    .type("IMAGE")
                     .thumbnail_url(thumbnailUrl)
                     .limit_time(limitTime)
                     .public_access(publicAccess)
@@ -133,7 +133,10 @@ public class QuizDTO {
         private short limitTime;
 
         @NotNull(message = "유효하지 않은 대표 이미지 수정 여부입니다.")
-        private boolean thumbnail;
+        private boolean thumbnailUpdate;
+
+        @NotNull(message = "유효하지 않은 대표 이미지 삭제 여부입니다.")
+        private boolean thumbnailDelete;
 
         @NotNull(message = "유효하지 않은 공개 여부입니다.")
         private boolean publicAccess;
@@ -164,9 +167,9 @@ public class QuizDTO {
         public CreateRedis toRedisEntity(String thumbnailUrl, List<QnAImageEntity> images) {
             return CreateRedis.builder()
                     .quizId(quizId)
+                    .update(true)
                     .title(title)
                     .comment(comment)
-                    .type("IMAGE")
                     .limitTime(limitTime)
                     .thumbnailUrl(thumbnailUrl)
                     .publicAccess(publicAccess)
@@ -204,7 +207,7 @@ public class QuizDTO {
     @Builder
     public static class UpdateResponse {
         private String quizId;
-        private boolean nextRequest;
+        private boolean checkRequire;
         private String thumbnailUrl;
         private String[] uploadUrlArray;
     }

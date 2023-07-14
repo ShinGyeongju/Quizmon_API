@@ -2,6 +2,7 @@ package kr.quizmon.api.domain.quiz;
 
 import jakarta.validation.Valid;
 
+import kr.quizmon.api.global.Util.S3Manager;
 import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
 import kr.quizmon.api.global.common.ResponseWrapper;
@@ -14,6 +15,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -21,16 +24,15 @@ import java.util.UUID;
 @RequestMapping("/api/quiz")
 public class QuizController {
     private final QuizService quizService;
+    private final S3Manager s3Manager;
 
     // TEST
     @GetMapping("/test")
     @PreAuthorize("isAuthenticated()")
     public String testApi(Authentication auth) {
+        String a = s3Manager.genPutPresignedUrl("6f3b47c8-d587-4cfe-b702-f4d461d5ece8", "thumbnailImage", "sv6wBISxUi/RAL3eLPGodHrRwOXm6BH3WVtpaX+iOSw=");
 
-        //redisIO.deleteQuiz("0691489a-2a9f-42e4-8246-2412c4a401fb");
-
-
-        return auth.getName();
+        return a;
     }
 
     /**

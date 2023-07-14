@@ -28,6 +28,9 @@ public class QnAImageEntity {
     @Column(name = "sequence_number")
     private short sequence_number;
 
+    @Column(name = "file_name")
+    private String file_name;
+
     @Column(name = "image_url")
     private String image_url;
 

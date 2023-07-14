@@ -60,8 +60,12 @@ public class QuizServiceImpl implements QuizService {
         List<QnAImageEntity> imageEntities = new ArrayList<>(presignedUrls.size());
         int i = 0;
         for (String publicUrl : presignedUrls.keySet()) {
+            String[] spliturl = publicUrl.split("/");
+            String fileName = spliturl[spliturl.length - 1];
+
             QnAImageEntity imageEntity = QnAImageEntity.builder()
                     .sequence_number((short) (i + 1))
+                    .file_name(fileName)
                     .image_url(publicUrl)
                     .options(requestDto.getQnaArray()[i].getOptionArray())
                     .answer(requestDto.getQnaArray()[i].getAnswerArray())
@@ -87,62 +91,6 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     @Transactional
-    public QuizDTO.CheckResponse checkImageQuiz(QuizDTO.CommonRequest commonDto) {
-        String quizId = commonDto.getQuizId();
-
-        try {
-            // Redis에서 퀴즈 정보 가져오기
-            QuizDTO.CreateRedis redisQuiz = redisIO.getQuiz(quizId);
-            if (redisQuiz == null) {
-                throw new Exception("There is no such quizId in redis.");
-            }
-            redisIO.deleteQuiz(quizId);
-
-            // S3에 저장된 퀴즈 검증
-            if (!s3Manager.checkOebject(quizId)) {
-                throw new Exception("Invalid image file");
-            }
-
-            // Redis와 S3의 파일 개수 비교
-            int imageCount = redisQuiz.getThumbnailUrl() != null
-                    ? redisQuiz.getQuestionCount() + 1
-                    : redisQuiz.getQuestionCount();
-            if (imageCount != s3Manager.getObjectCount(quizId)) {
-                throw new Exception("File count does not match.");
-            }
-
-            // ID 존재 여부 확인
-            UserEntity user = userRepository.findById(commonDto.getUserId())
-                    .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
-
-            // Quiz 저장
-            QuizEntity quiz = quizRepository.saveAndFlush(redisQuiz.toQuizEntity(user));
-
-            // Image 문/답 저장
-            qnAImageRepository.saveAllAndFlush(redisQuiz.toQnAImageEntities(quiz));
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-
-            // 이미지 파일 삭제
-            s3Manager.deleteObject(quizId);
-
-            // Redis에서 퀴즈 정보 삭제
-            redisIO.deleteQuiz(quizId);
-
-            return QuizDTO.CheckResponse.builder()
-                    .quizId(quizId)
-                    .succeed(false)
-                    .build();
-        }
-
-        return QuizDTO.CheckResponse.builder()
-                .quizId(quizId)
-                .succeed(true)
-                .build();
-    }
-
-    @Override
-    @Transactional
     public QuizDTO.UpdateResponse updateImageQuiz(QuizDTO.UpdateRequest requestDto) {
         String quizId = requestDto.getQuizId().toString();
 
@@ -161,7 +109,7 @@ public class QuizServiceImpl implements QuizService {
                 .count();
 
         // 업로드할 이미지가 없으면 덮어쓰고 응답
-        if (containsNullCount == 0 && !requestDto.isThumbnail()) {
+        if (containsNullCount == 0 && !requestDto.isThumbnailUpdate()) {
             // 퀴즈 기본 정보 수정
             quiz.updateQuiz(requestDto);
 
@@ -172,9 +120,13 @@ public class QuizServiceImpl implements QuizService {
             List<QnAImageEntity> imageEntities = new ArrayList<>(requestDto.getQnaArray().length);
             int i = 0;
             for (QuizDTO.UpdateRequest.QnA qna : requestDto.getQnaArray()) {
+                String[] spliturl = qna.getQuestionUrl().split("/");
+                String fileName = spliturl[spliturl.length - 1];
+
                 QnAImageEntity imageEntity = QnAImageEntity.builder()
                         .quizEntity(quiz)
                         .sequence_number((short) (i + 1))
+                        .file_name(fileName)
                         .image_url(qna.getQuestionUrl())
                         .options(qna.getOptionArray())
                         .answer(qna.getAnswerArray())
@@ -187,7 +139,7 @@ public class QuizServiceImpl implements QuizService {
 
             return QuizDTO.UpdateResponse.builder()
                     .quizId(quizId)
-                    .nextRequest(false)
+                    .checkRequire(false)
                     .thumbnailUrl(null)
                     .uploadUrlArray(null)
                     .build();
@@ -202,19 +154,20 @@ public class QuizServiceImpl implements QuizService {
         }
 
         // 대표 이미지 URL 설정
-        String thumbnailPreUrl = requestDto.isThumbnail()
-                ? s3Manager.genPutPresignedUrl(quizId, "thumbnailImage", signatureCode)
-                : null;
-        String thumbnailPubUrl = requestDto.isThumbnail()
-                ? s3Manager.getPublicUrl(quizId, "thumbnailImage")
-                : null;
+        String thumbnailPreUrl = null;
+        String thumbnailPubUrl = null;
+        if (!requestDto.isThumbnailDelete()) {
+            thumbnailPreUrl = requestDto.isThumbnailUpdate()
+                    ? s3Manager.genPutPresignedUrl(quizId, "thumbnailImage", signatureCode)
+                    : null;
+            thumbnailPubUrl = requestDto.isThumbnailUpdate()
+                    ? s3Manager.getPublicUrl(quizId, "thumbnailImage")
+                    : quiz.getThumbnail_url();
+        }
 
         // 새로운 이미지 수 만큼 presignedUrl 생성
         int startIndex = quiz.getQnAImageEntities().stream()
-                .map(qna -> {
-                    String[] splitQna = qna.getImage_url().split("/");
-                    return Integer.parseInt(splitQna[splitQna.length - 1]);
-                })
+                .map(qna -> Integer.parseInt(qna.getFile_name()))
                 .max(Comparator.comparingInt(qna -> qna))
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 이미지 url입니다."));
         Map<String, String> presignedUrls = s3Manager.genPutPresignedUrl(quizId, startIndex, containsNullCount, signatureCode);
@@ -226,8 +179,12 @@ public class QuizServiceImpl implements QuizService {
         for (QuizDTO.UpdateRequest.QnA qna : requestDto.getQnaArray()) {
             String imageUrl = qna.getQuestionUrl() == null ? publicUrlList.remove(0) : qna.getQuestionUrl();
 
+            String[] spliturl = imageUrl.split("/");
+            String fileName = spliturl[spliturl.length - 1];
+
             QnAImageEntity imageEntity = QnAImageEntity.builder()
                     .sequence_number((short) (i + 1))
+                    .file_name(fileName)
                     .image_url(imageUrl)
                     .options(qna.getOptionArray())
                     .answer(qna.getAnswerArray())
@@ -246,12 +203,126 @@ public class QuizServiceImpl implements QuizService {
 
         return QuizDTO.UpdateResponse.builder()
                 .quizId(quizId)
-                .nextRequest(true)
+                .checkRequire(true)
                 .thumbnailUrl(thumbnailPreUrl)
                 .uploadUrlArray(urlArray)
                 .build();
     }
 
+    @Override
+    @Transactional
+    public QuizDTO.CheckResponse checkImageQuiz(QuizDTO.CommonRequest commonDto) {
+        String quizId = commonDto.getQuizId();
+
+        // Redis에서 퀴즈 정보 가져오기
+        QuizDTO.CreateRedis redisQuiz = redisIO.getQuiz(quizId);
+        if (redisQuiz == null) {
+            log.error("There is no such quizId in redis.");
+
+            return QuizDTO.CheckResponse.builder()
+                    .quizId(quizId)
+                    .succeed(false)
+                    .build();
+        }
+
+        // Redis에서 퀴즈 정보 삭제
+        redisIO.deleteQuiz(quizId);
+
+        String thumbnailUrl = null;
+        List<QnAImageEntity> qnas = null;
+        QuizEntity quiz = null;
+
+        try {
+            // 업데이트 요청일 경우, 초기 퀴즈 정보 저장
+            if (redisQuiz.isUpdate()) {
+                quiz = quizRepository.findByQuizId(UUID.fromString(quizId))
+                        .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+                thumbnailUrl = quiz.getThumbnail_url();
+                qnas = quiz.getQnAImageEntities().stream().toList();
+            }
+
+            // S3에 저장된 퀴즈 검증
+            if (redisQuiz.isUpdate()) {
+                int maxCount = 31 + redisQuiz.getQuestionCount();
+                if (!s3Manager.checkObject(quizId, maxCount)) {
+                    throw new Exception("Invalid image file");
+                }
+            } else {
+                if (!s3Manager.checkObject(quizId)) {
+                    throw new Exception("Invalid image file");
+                }
+
+                // Redis와 S3의 파일 개수 비교
+                int imageCount = redisQuiz.getThumbnailUrl() != null
+                        ? redisQuiz.getQuestionCount() + 1
+                        : redisQuiz.getQuestionCount();
+                if (imageCount != s3Manager.getObjectCount(quizId)) {
+                    throw new Exception("File count does not match.");
+                }
+            }
+
+            // ID 존재 여부 확인
+            UserEntity user = userRepository.findById(commonDto.getUserId())
+                    .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
+
+            // Quiz 저장
+            if (redisQuiz.isUpdate()) {
+                quiz.updateQuiz(redisQuiz.toQuizEntity(user));
+
+                thumbnailUrl = quiz.getThumbnail_url();
+
+                // 기존 문제 전체 삭제
+                qnAImageRepository.deleteAllByQuizId(quiz.getQuizId());
+            } else {
+                quiz = quizRepository.saveAndFlush(redisQuiz.toQuizEntity(user));
+            }
+
+            // Image 문/답 저장
+            // TODO: Bulk Insert로 전환 필요
+            qnas = qnAImageRepository.saveAll(redisQuiz.toQnAImageEntities(quiz));
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+
+            // 생성 요청일 경우, 전체 이미지 파일 삭제
+            if (!redisQuiz.isUpdate()) {
+                s3Manager.deleteObject(quizId);
+            }
+
+            return QuizDTO.CheckResponse.builder()
+                    .quizId(quizId)
+                    .succeed(false)
+                    .build();
+        } finally {
+            // 업데이트 요청일 경우, 사용하지 않는 이미지 파일 삭제
+            if (redisQuiz.isUpdate()) {
+                // DB에 저장된 파일 이름 가져오기
+                List<String> dbFiles = new ArrayList<>(qnas.stream().map(QnAImageEntity::getFile_name).toList());
+                if (thumbnailUrl != null) {
+                    dbFiles.add("thumbnailImage");
+                }
+
+                // S3에 저장된 Key 가져오기
+                List<String> s3Files = s3Manager.getObjectKeyList(quizId);
+
+                if (dbFiles.size() != 0 && s3Files != null) {
+                    // 사용하지 않는 이미지 파일 설정
+                    List<String> deleteFiles = s3Files.stream()
+                            .map(key -> {
+                                String[] splitKey = key.split("/");
+                                return splitKey[splitKey.length - 1];
+                            }).filter(s3File -> !dbFiles.contains(s3File))
+                            .toList();
+
+                    s3Manager.deleteObject(quizId, deleteFiles);
+                }
+            }
+        }
+
+        return QuizDTO.CheckResponse.builder()
+                .quizId(quizId)
+                .succeed(true)
+                .build();
+    }
 
 
 

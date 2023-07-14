@@ -65,14 +65,18 @@ public class S3Manager {
         return amazonS3Client.getUrl(bucket, objectKey).toString();
     }
 
-    public boolean checkOebject(String quizId) {
+    public boolean checkObject(String quizId) {
+        return checkObject(quizId, 31);
+    }
+
+    public boolean checkObject(String quizId, int maxCount) {
         // quizId에 해당하는 모든 이미지 조회
         ListObjectsV2Result listResult = amazonS3Client.listObjectsV2(bucket, PREFIX_IMAGE + quizId);
         List<S3ObjectSummary> objectList = listResult.getObjectSummaries();
 
         // 파일 개수 확인
         int objectCount = objectList.size();
-        if (objectCount < 1 || objectCount > 31) {
+        if (objectCount < 1 || objectCount > maxCount) {
             return false;
         }
 
@@ -92,6 +96,19 @@ public class S3Manager {
         return listResult.getKeyCount();
     }
 
+    public List<String> getObjectKeyList(String quizId) {
+        ListObjectsV2Result listResult = amazonS3Client.listObjectsV2(bucket, PREFIX_IMAGE + quizId);
+
+        // 이미지 존재 여부 확인
+        if (listResult.getKeyCount() == 0) {
+            return null;
+        }
+
+        return listResult.getObjectSummaries().stream()
+                .map(S3ObjectSummary::getKey)
+                .toList();
+    }
+
     public void deleteObject(String quizId) {
         // quizId에 해당하는 모든 이미지 조회
         ListObjectsV2Result listResult = amazonS3Client.listObjectsV2(bucket, PREFIX_IMAGE + quizId);
@@ -107,6 +124,25 @@ public class S3Manager {
         });
 
         // quizId에 해당하는 모든 이미지 삭제
+        DeleteObjectsRequest request = new DeleteObjectsRequest(bucket)
+                .withKeys(keyVersions);
+
+        amazonS3Client.deleteObjects(request);
+    }
+
+    public void deleteObject(String quizId, List<String> fileNames) {
+        // 파일 이름 배열 확인
+        if (fileNames == null || fileNames.size() == 0) {
+            return;
+        }
+
+        List<DeleteObjectsRequest.KeyVersion> keyVersions = new ArrayList<>(fileNames.size());
+        fileNames.forEach(fileName -> {
+            String key = PREFIX_IMAGE + quizId + "/" + fileName;
+            keyVersions.add(new DeleteObjectsRequest.KeyVersion(key));
+        });
+
+        // quizId에서 fileNames에 해당하는 모든 이미지 삭제
         DeleteObjectsRequest request = new DeleteObjectsRequest(bucket)
                 .withKeys(keyVersions);
 

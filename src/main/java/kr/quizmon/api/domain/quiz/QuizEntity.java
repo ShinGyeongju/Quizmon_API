@@ -85,4 +85,15 @@ public class QuizEntity {
         this.random_question = request.isRandomQuestion();
         this.multiple_choice = request.isMultipleChoice();
     }
+
+    public void updateQuiz(QuizEntity quiz) {
+        this.title = quiz.getTitle();
+        this.description = quiz.getDescription();
+        this.limit_time = quiz.getLimit_time();
+        this.thumbnail_url = quiz.getThumbnail_url();
+        this.public_access = quiz.isPublic_access();
+        this.random_question = quiz.isRandom_question();
+        this.multiple_choice = quiz.isMultiple_choice();
+        this.qnAImageEntities = quiz.getQnAImageEntities();
+    }
 }
