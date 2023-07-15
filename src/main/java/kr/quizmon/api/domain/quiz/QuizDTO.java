@@ -182,6 +182,15 @@ public class QuizDTO {
     }
 
     @Getter
+    @Setter
+    @Builder
+    public static class GetRequest {
+        private String userId;
+        private String quizId;
+        private Boolean play;
+    }
+
+    @Getter
     @Builder
     public static class CommonRequest {
         private String userId;

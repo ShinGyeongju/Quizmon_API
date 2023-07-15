@@ -350,15 +350,14 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     @Transactional(readOnly = true)
-    public QuizDTO.GetResponse getQuiz(QuizDTO.CommonRequest commonDto) {
+    public QuizDTO.GetResponse getQuiz(QuizDTO.GetRequest requestDto) {
         // 퀴즈 존재 여부 확인
-        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(commonDto.getQuizId()))
+        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(requestDto.getQuizId()))
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
 
         // 퀴즈 관리 권한 확인
-        boolean isOwner = commonDto.getUserId() != null && commonDto.getUserId().equals(quiz.getUserEntity().getId());
+        boolean isOwner = requestDto.getUserId() != null && requestDto.getUserId().equals(quiz.getUserEntity().getId());
 
-        // TODO: 퀴즈 속성에 따라 다른 처리 필요
         // 문제 응답 배열 생성
         QuizDTO.GetResponse.QnA[] qnas = quiz.getQnAImageEntities().stream()
                 .sorted(Comparator.comparing(QnAImageEntity::getSequence_number))
@@ -369,8 +368,17 @@ public class QuizServiceImpl implements QuizService {
                         .build())
                 .toArray(QuizDTO.GetResponse.QnA[]::new);
 
+        if (requestDto.getPlay()) {
+            // 문제 순서 랜점 정렬
+            if (quiz.isRandom_question()) {
+                List<QuizDTO.GetResponse.QnA> qnsList = Arrays.asList(qnas);
+                Collections.shuffle(qnsList);
+                qnas = qnsList.toArray(QuizDTO.GetResponse.QnA[]::new);
+            }
+        }
+
         return QuizDTO.GetResponse.builder()
-                .quizId(commonDto.getQuizId())
+                .quizId(requestDto.getQuizId())
                 .isOwner(isOwner)
                 .title(quiz.getTitle())
                 .comment(quiz.getDescription())

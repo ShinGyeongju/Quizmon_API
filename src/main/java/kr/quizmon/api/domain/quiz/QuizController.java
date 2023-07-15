@@ -15,8 +15,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -137,15 +135,21 @@ public class QuizController {
      * 상세 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseWrapper> getQuizApi(@PathVariable("id") String quizId, Authentication auth) {
+    public ResponseEntity<ResponseWrapper> getQuizApi(@PathVariable("id") String quizId, @Valid QuizDTO.GetRequest requestDto, BindingResult bindingResult, Authentication auth) {
+        if (bindingResult.hasErrors()) {
+            ObjectError error = bindingResult.getAllErrors().get(0);
+            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+        }
+
+        // 기본값 설정
         String userId = auth != null ? auth.getName() : null;
+        boolean play = requestDto.getPlay() != null ? requestDto.getPlay() : true;
 
-        QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
-                .userId(userId)
-                .quizId(quizId)
-                .build();
+        requestDto.setUserId(userId);
+        requestDto.setQuizId(quizId);
+        requestDto.setPlay(play);
 
-        QuizDTO.GetResponse responseBody = quizService.getQuiz(commonDto);
+        QuizDTO.GetResponse responseBody = quizService.getQuiz(requestDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(200)

@@ -5,5 +5,5 @@ public interface QuizService {
     QuizDTO.UpdateResponse updateImageQuiz(QuizDTO.UpdateRequest requestDto);
     QuizDTO.CheckResponse checkImageQuiz(QuizDTO.CommonRequest commonDto);
     QuizDTO.CommonResponse deleteQuiz(QuizDTO.CommonRequest commonDto);
-    QuizDTO.GetResponse getQuiz(QuizDTO.CommonRequest commonDto);
+    QuizDTO.GetResponse getQuiz(QuizDTO.GetRequest requestDto);
 }
