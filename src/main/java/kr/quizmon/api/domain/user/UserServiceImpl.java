@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
 
         // 기존 비밀번호 확인
         if (!passwordEncoder.matches(requestDto.getOldPassword(), user.getPassword())) {
-            throw new CustomApiException(ErrorCode.INVALID_USER);
+            throw new CustomApiException(ErrorCode.INVALID_OLD_PASSWORD);
         }
 
         // 새 비밀번호 인코딩
@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
 
         // 비밀번호 확인
         if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
-            throw new CustomApiException(ErrorCode.INVALID_USER);
+            throw new CustomApiException(ErrorCode.INVALID_OLD_PASSWORD);
         }
 
         // 사용자 삭제
