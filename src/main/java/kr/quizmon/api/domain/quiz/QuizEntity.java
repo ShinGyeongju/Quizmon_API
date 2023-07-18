@@ -53,7 +53,7 @@ public class QuizEntity {
     private boolean multiple_choice;
 
     @Column(name = "url_id")
-    private String url_id;
+    private String urlId;
 
     @Column(name = "question_count")
     private int question_count;
@@ -81,9 +81,9 @@ public class QuizEntity {
         this.title = request.getTitle();
         this.description = request.getComment();
         this.limit_time = request.getLimitTime();
-        this.public_access = request.isPublicAccess();
-        this.random_question = request.isRandomQuestion();
-        this.multiple_choice = request.isMultipleChoice();
+        this.public_access = request.getPublicAccess();
+        this.random_question = request.getRandomQuestion();
+        this.multiple_choice = request.getMultipleChoice();
     }
 
     public void updateQuiz(QuizEntity quiz) {

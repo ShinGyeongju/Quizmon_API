@@ -11,8 +11,6 @@ import java.util.UUID;
 
 public interface QuizRepository extends JpaRepository<QuizEntity, UUID>, QuizRepositoryCustom {
     Optional<QuizEntity> findByQuizId(UUID id);
-
-//    @Query(value = "SELECT q FROM tb_quiz q WHERE ")
-//    List<QuizEntity> findAllByListRequest(Sort sort);
+    Optional<QuizEntity> findByUrlId(String urlId);
 
 }

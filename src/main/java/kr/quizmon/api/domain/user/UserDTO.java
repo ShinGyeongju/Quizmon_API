@@ -10,6 +10,7 @@ public class UserDTO {
     @Builder
     public static class Check {
         private String id;
+        private String authority;
     }
 
     @Getter

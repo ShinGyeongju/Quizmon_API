@@ -1,9 +1,6 @@
 package kr.quizmon.api.domain.quiz;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import kr.quizmon.api.domain.user.UserEntity;
 import lombok.*;
 
@@ -28,19 +25,19 @@ public class QuizDTO {
         private String comment;
 
         @NotNull(message = "유효하지 않은 제한 시간입니다.")
-        private short limitTime;
+        private Short limitTime;
 
         @NotNull(message = "유효하지 않은 대표 이미지 여부입니다.")
-        private boolean thumbnail;
+        private Boolean thumbnail;
 
         @NotNull(message = "유효하지 않은 공개 여부입니다.")
-        private boolean publicAccess;
+        private Boolean publicAccess;
 
         @NotNull(message = "유효하지 않은 랜덤 출제 여부입니다.")
-        private boolean randomQuestion;
+        private Boolean randomQuestion;
 
         @NotNull(message = "유효하지 않은 사지선다 여부입니다.")
-        private boolean multipleChoice;
+        private Boolean multipleChoice;
 
         @NotBlank(message = "유효하지 않은 인증 본문입니다.")
         private String signatureMessage;
@@ -130,28 +127,28 @@ public class QuizDTO {
         private String comment;
 
         @NotNull(message = "유효하지 않은 제한 시간입니다.")
-        private short limitTime;
+        private Short limitTime;
 
         @NotNull(message = "유효하지 않은 대표 이미지 수정 여부입니다.")
-        private boolean thumbnailUpdate;
+        private Boolean thumbnailUpdate;
 
         @NotNull(message = "유효하지 않은 대표 이미지 삭제 여부입니다.")
-        private boolean thumbnailDelete;
+        private Boolean thumbnailDelete;
 
         @NotNull(message = "유효하지 않은 공개 여부입니다.")
-        private boolean publicAccess;
+        private Boolean publicAccess;
 
         @NotNull(message = "유효하지 않은 랜덤 출제 여부입니다.")
-        private boolean randomQuestion;
+        private Boolean randomQuestion;
 
         @NotNull(message = "유효하지 않은 사지선다 여부입니다.")
-        private boolean multipleChoice;
+        private Boolean multipleChoice;
 
         @NotBlank(message = "유효하지 않은 인증 본문입니다.")
         private String signatureMessage;
 
         @NotNull(message = "유효하지 않은 정답 배열입니다.")
-        private UpdateRequest.QnA[] qnaArray;
+        private QnA[] qnaArray;
 
         @Getter
         public static class QnA {
@@ -186,8 +183,40 @@ public class QuizDTO {
     @Builder
     public static class GetRequest {
         private String userId;
-        private String quizId;
+        private String userAuthority;
+        //private String quizId;
+        private String urlId;
         private Boolean play;
+    }
+
+    @Getter
+    @Builder
+    public static class GetListRequest {
+        @Setter
+        private String userId;
+
+        @NotNull(message = "유효하지 않은 정렬 방식입니다.")
+        @Pattern(regexp="[1234]" , message="유효하지 않은 정렬 방식입니다.")
+        private String sort;
+
+        @Pattern(regexp="[12]" , message="유효하지 않은 퀴즈 종류입니다.")
+        private String type;
+
+        @Pattern(regexp="[12]" , message="유효하지 않은 접근 종류입니다.")
+        private String access;
+
+        @Pattern(regexp="[0-9]*" , message="유효하지 않은 업데이트 시간입니다.")
+        private String timeStamp;
+
+        @Pattern(regexp="[0-9]*" , message="유효하지 않은 퀴즈 순번입니다.")
+        private String seqNum;
+
+        private String searchWord;
+
+        @Pattern(regexp="[0-9]*" , message="유효하지 않은 퀴즈 개수입니다.")
+        private String count;
+
+        private Boolean userOnly;
     }
 
     @Getter
@@ -206,7 +235,7 @@ public class QuizDTO {
 
     @Getter
     @Builder
-    static class CreateResponse {
+    public static class CreateResponse {
         private String quizId;
         private String thumbnailUrl;
         private String[] uploadUrlArray;
@@ -223,14 +252,14 @@ public class QuizDTO {
 
     @Getter
     @Builder
-    static class CheckResponse {
+    public static class CheckResponse {
         private String quizId;
         private boolean succeed;
     }
 
     @Getter
     @Builder
-    static class GetResponse {
+    public static class GetResponse {
         private String quizId;
         private boolean isOwner;
         private String title;
@@ -243,7 +272,7 @@ public class QuizDTO {
         private boolean multipleChoice;
         private int playCount;
         private int reportCount;
-        private GetResponse.QnA[] qnaArray;
+        private QnA[] qnaArray;
 
         @Getter
         @Builder
@@ -251,6 +280,29 @@ public class QuizDTO {
             private String questionUrl;
             private String[] optionArray;
             private String[] answerArray;
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetListResponse {
+        private int quizCount;
+        private Quiz[] quizArray;
+
+        @Getter
+        @Builder
+        public static class Quiz {
+            private String quizId;
+            private String urlId;
+            private String title;
+            private String comment;
+            private String type;
+            private String thumbnailUrl;
+            private int limitTime;
+            private int playCount;
+            private int reportCount;
+            private long timeStamp;
+            private int seqNum;
         }
     }
 

@@ -31,15 +31,11 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
 
-        // ID 존재 여부 확인
-        UserEntity user = userRepository.findById(checkDto.getId())
-                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
-
         // 관리자 여부 확인
-        boolean isAdmin = user.getAuthority().equals("ADMIN");
+        boolean isAdmin = checkDto.getAuthority().equals("ADMIN");
 
         return UserDTO.CheckResponse.builder()
-                .id(user.getId())
+                .id(checkDto.getId())
                 .valid(true)
                 .admin(isAdmin)
                 .build();

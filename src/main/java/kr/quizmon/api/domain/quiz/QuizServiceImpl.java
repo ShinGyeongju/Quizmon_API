@@ -45,10 +45,10 @@ public class QuizServiceImpl implements QuizService {
         }
 
         // 대표 이미지 URL 설정
-        String thumbnailPreUrl = requestDto.isThumbnail()
+        String thumbnailPreUrl = requestDto.getThumbnail()
                 ? s3Manager.genPutPresignedUrl(quizId, "thumbnailImage", signatureCode)
                 : null;
-        String thumbnailPubUrl = requestDto.isThumbnail()
+        String thumbnailPubUrl = requestDto.getThumbnail()
                 ? s3Manager.getPublicUrl(quizId, "thumbnailImage")
                 : null;
 
@@ -109,7 +109,7 @@ public class QuizServiceImpl implements QuizService {
                 .count();
 
         // 업로드할 이미지가 없으면 덮어쓰고 응답
-        if (containsNullCount == 0 && !requestDto.isThumbnailUpdate()) {
+        if (containsNullCount == 0 && !requestDto.getThumbnailUpdate()) {
             // 퀴즈 기본 정보 수정
             quiz.updateQuiz(requestDto);
 
@@ -156,11 +156,11 @@ public class QuizServiceImpl implements QuizService {
         // 대표 이미지 URL 설정
         String thumbnailPreUrl = null;
         String thumbnailPubUrl = null;
-        if (!requestDto.isThumbnailDelete()) {
-            thumbnailPreUrl = requestDto.isThumbnailUpdate()
+        if (!requestDto.getThumbnailDelete()) {
+            thumbnailPreUrl = requestDto.getThumbnailUpdate()
                     ? s3Manager.genPutPresignedUrl(quizId, "thumbnailImage", signatureCode)
                     : null;
-            thumbnailPubUrl = requestDto.isThumbnailUpdate()
+            thumbnailPubUrl = requestDto.getThumbnailUpdate()
                     ? s3Manager.getPublicUrl(quizId, "thumbnailImage")
                     : quiz.getThumbnail_url();
         }
@@ -352,14 +352,20 @@ public class QuizServiceImpl implements QuizService {
     @Transactional(readOnly = true)
     public QuizDTO.GetResponse getQuiz(QuizDTO.GetRequest requestDto) {
         // 퀴즈 존재 여부 확인
-        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(requestDto.getQuizId()))
-                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+        QuizEntity quiz = quizRepository.findByUrlId(requestDto.getUrlId())
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_URL_ID));
 
         // 퀴즈 관리 권한 확인
-        boolean isOwner = requestDto.getUserId() != null && requestDto.getUserId().equals(quiz.getUserEntity().getId());
+        boolean isOwner = requestDto.getUserId() != null
+                && (requestDto.getUserId().equals(quiz.getUserEntity().getId()) || requestDto.getUserAuthority().equals("ADMIN"));
+
+        List<QnAImageEntity> images = quiz.getQnAImageEntities();
+
+        // 대표 이미지 지정
+        String thumbnailUrl = quiz.getThumbnail_url() != null ? quiz.getThumbnail_url() : images.get(0).getImage_url();
 
         // 문제 응답 배열 생성
-        QuizDTO.GetResponse.QnA[] qnas = quiz.getQnAImageEntities().stream()
+        QuizDTO.GetResponse.QnA[] qnas = images.stream()
                 .sorted(Comparator.comparing(QnAImageEntity::getSequence_number))
                 .map(image -> QuizDTO.GetResponse.QnA.builder()
                         .questionUrl(image.getImage_url())
@@ -368,7 +374,7 @@ public class QuizServiceImpl implements QuizService {
                         .build())
                 .toArray(QuizDTO.GetResponse.QnA[]::new);
 
-        if (requestDto.getPlay()) {
+        if (requestDto.getPlay() == null || requestDto.getPlay()) {
             // 문제 순서 랜점 정렬
             if (quiz.isRandom_question()) {
                 List<QuizDTO.GetResponse.QnA> qnsList = Arrays.asList(qnas);
@@ -378,12 +384,12 @@ public class QuizServiceImpl implements QuizService {
         }
 
         return QuizDTO.GetResponse.builder()
-                .quizId(requestDto.getQuizId())
+                .quizId(String.valueOf(quiz.getQuizId()))
                 .isOwner(isOwner)
                 .title(quiz.getTitle())
                 .comment(quiz.getDescription())
                 .type(quiz.getType())
-                .thumbnailUrl(quiz.getThumbnail_url())
+                .thumbnailUrl(thumbnailUrl)
                 .limitTime(quiz.getLimit_time())
                 .publicAccess(quiz.isPublic_access())
                 .randomQuestion(quiz.isRandom_question())
@@ -394,6 +400,26 @@ public class QuizServiceImpl implements QuizService {
                 .build();
     }
 
+    @Override
+    public QuizDTO.GetListResponse getQuizList(QuizDTO.GetListRequest requestDto) {
+        // 정렬 방식 설정
+        switch (requestDto.getSort()) {
+            case "1":
+                break;
+            case "2":
+                break;
+            case "3":
+                break;
+            case "4":
+                break;
+            default:
+                break;
+        }
+
+
+
+        return null;
+    }
 
 
 }

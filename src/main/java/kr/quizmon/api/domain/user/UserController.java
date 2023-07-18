@@ -34,9 +34,11 @@ public class UserController {
     public ResponseEntity<ResponseWrapper> checkApi(Authentication auth) {
         // 사용자 id 설정
         String userId = auth != null ? auth.getName() : null;
+        String userAuthority = auth != null ? auth.getAuthorities().toArray()[0].toString() : "ANONYMOUS";
 
         UserDTO.Check checkDto = UserDTO.Check.builder()
                 .id(userId)
+                .authority(userAuthority)
                 .build();
 
         UserDTO.CheckResponse responseBody = userService.checkToken(checkDto);

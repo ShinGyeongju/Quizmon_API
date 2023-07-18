@@ -135,19 +135,19 @@ public class QuizController {
      * 상세 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseWrapper> getQuizApi(@PathVariable("id") String quizId, @Valid QuizDTO.GetRequest requestDto, BindingResult bindingResult, Authentication auth) {
+    public ResponseEntity<ResponseWrapper> getQuizApi(@PathVariable("id") String urlId, @Valid QuizDTO.GetRequest requestDto, BindingResult bindingResult, Authentication auth) {
         if (bindingResult.hasErrors()) {
             ObjectError error = bindingResult.getAllErrors().get(0);
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
         }
 
-        // 기본값 설정
+        // 사용자 인증 정보 설정
         String userId = auth != null ? auth.getName() : null;
-        boolean play = requestDto.getPlay() != null ? requestDto.getPlay() : true;
+        String userAuthority = auth != null ? auth.getAuthorities().toArray()[0].toString() : "ANONYMOUS";
 
         requestDto.setUserId(userId);
-        requestDto.setQuizId(quizId);
-        requestDto.setPlay(play);
+        requestDto.setUserAuthority(userAuthority);
+        requestDto.setUrlId(urlId);
 
         QuizDTO.GetResponse responseBody = quizService.getQuiz(requestDto);
 
@@ -163,10 +163,33 @@ public class QuizController {
     /**
      * 목록 조회
      */
-//    @GetMapping("/list")
-//    public ResponseEntity<ResponseWrapper> getQuizListApi() {
-//
-//    }
+    @GetMapping("/list")
+    public ResponseEntity<ResponseWrapper> getQuizListApi(@Valid QuizDTO.GetListRequest requestDto, BindingResult bindingResult, Authentication auth) {
+        if (bindingResult.hasErrors()) {
+            ObjectError error = bindingResult.getAllErrors().get(0);
+            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+        }
+
+        // 사용자 id 설정
+        String userAuthority = auth != null ? auth.getAuthorities().toArray()[0].toString() : "ANONYMOUS";
+        String userId = auth != null ? auth.getName() : null;
+        requestDto.setUserId(userId);
+
+        // 유효성 검사
+        if (requestDto.getSort().equals("4") && !userAuthority.equals("ADMIN")) throw new CustomApiException(ErrorCode.FORBIDDEN_USER);
+        if (requestDto.getUserOnly() != null && requestDto.getUserOnly() && userId == null) throw new CustomApiException(ErrorCode.FORBIDDEN_USER);
+
+
+        QuizDTO.GetListResponse responseBody = quizService.getQuizList(requestDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }
