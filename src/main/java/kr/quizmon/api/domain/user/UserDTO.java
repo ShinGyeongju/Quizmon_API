@@ -102,5 +102,6 @@ public class UserDTO {
     public static class LoginResponse {
         private String id;
         private String token;
+        private boolean admin;
     }
 }

@@ -35,6 +35,7 @@ public class UserServiceImpl implements UserService {
         UserEntity user = userRepository.findById(checkDto.getId())
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
 
+        // 관리자 여부 확인
         boolean isAdmin = user.getAuthority().equals("ADMIN");
 
         return UserDTO.CheckResponse.builder()
@@ -136,9 +137,13 @@ public class UserServiceImpl implements UserService {
         // JWT 토큰 생성
         String token = jwtProvider.createToken(user.getId(), user.getAuthority());
 
+        // 관리자 여부 확인
+        boolean isAdmin = user.getAuthority().equals("ADMIN");
+
         return UserDTO.LoginResponse.builder()
                 .id(user.getId())
                 .token(token)
+                .admin(isAdmin)
                 .build();
     }
 
