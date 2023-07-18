@@ -81,6 +81,9 @@ public class QuizEntity {
         this.title = request.getTitle();
         this.description = request.getComment();
         this.limit_time = request.getLimitTime();
+        if (request.getThumbnailDelete()) {
+            this.thumbnail_url = null;
+        }
         this.public_access = request.getPublicAccess();
         this.random_question = request.getRandomQuestion();
         this.multiple_choice = request.getMultipleChoice();

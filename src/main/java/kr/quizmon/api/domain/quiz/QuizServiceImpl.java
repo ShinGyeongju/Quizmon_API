@@ -107,9 +107,10 @@ public class QuizServiceImpl implements QuizService {
         int containsNullCount = (int) Arrays.stream(requestDto.getQnaArray()).
                 filter(qna -> qna.getQuestionUrl() == null)
                 .count();
+        boolean thumbnailUpload = requestDto.getThumbnailUpdate() && !requestDto.getThumbnailDelete();
 
         // 업로드할 이미지가 없으면 덮어쓰고 응답
-        if (containsNullCount == 0 && !requestDto.getThumbnailUpdate()) {
+        if (containsNullCount == 0 && !thumbnailUpload) {
             // 퀴즈 기본 정보 수정
             quiz.updateQuiz(requestDto);
 
