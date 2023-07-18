@@ -3,7 +3,9 @@ package kr.quizmon.api.domain.quiz;
 import jakarta.validation.constraints.*;
 import kr.quizmon.api.domain.user.UserEntity;
 import lombok.*;
+import org.springframework.data.domain.Sort;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -205,18 +207,31 @@ public class QuizDTO {
         @Pattern(regexp="[12]" , message="유효하지 않은 접근 종류입니다.")
         private String access;
 
-        @Pattern(regexp="[0-9]*" , message="유효하지 않은 업데이트 시간입니다.")
-        private String timeStamp;
+        //@Pattern(regexp="[0-9]*" , message="유효하지 않은 업데이트 시간입니다.")
+        private LocalDateTime timeStamp;
 
-        @Pattern(regexp="[0-9]*" , message="유효하지 않은 퀴즈 순번입니다.")
-        private String seqNum;
+        //@Pattern(regexp="[0-9]*" , message="유효하지 않은 퀴즈 순번입니다.")
+        private Integer seqNum;
 
         private String searchWord;
 
-        @Pattern(regexp="[0-9]*" , message="유효하지 않은 퀴즈 개수입니다.")
-        private String count;
+        //@Pattern(regexp="[0-9]*" , message="유효하지 않은 퀴즈 개수입니다.")
+        private Integer count;
 
         private Boolean userOnly;
+    }
+
+    @Getter
+    @Setter
+    public static class QuizListQuery {
+        private UUID userPk;
+        private String type;
+        private Boolean access;
+        private LocalDateTime timeStamp;
+        private Integer seqNum;
+        private String searchWord;
+        private long count;
+        private Sort.Order order;
     }
 
     @Getter
@@ -290,18 +305,19 @@ public class QuizDTO {
         private Quiz[] quizArray;
 
         @Getter
-        @Builder
+        //@Builder
+        @NoArgsConstructor
         public static class Quiz {
-            private String quizId;
+            private UUID quizId;
             private String urlId;
             private String title;
             private String comment;
             private String type;
             private String thumbnailUrl;
-            private int limitTime;
+            private short limitTime;
             private int playCount;
             private int reportCount;
-            private long timeStamp;
+            private LocalDateTime timeStamp;
             private int seqNum;
         }
     }

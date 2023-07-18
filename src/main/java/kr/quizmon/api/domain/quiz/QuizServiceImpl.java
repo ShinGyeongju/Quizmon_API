@@ -10,6 +10,7 @@ import kr.quizmon.api.global.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -360,13 +361,8 @@ public class QuizServiceImpl implements QuizService {
         boolean isOwner = requestDto.getUserId() != null
                 && (requestDto.getUserId().equals(quiz.getUserEntity().getId()) || requestDto.getUserAuthority().equals("ADMIN"));
 
-        List<QnAImageEntity> images = quiz.getQnAImageEntities();
-
-        // 대표 이미지 지정
-        String thumbnailUrl = quiz.getThumbnail_url() != null ? quiz.getThumbnail_url() : images.get(0).getImage_url();
-
         // 문제 응답 배열 생성
-        QuizDTO.GetResponse.QnA[] qnas = images.stream()
+        QuizDTO.GetResponse.QnA[] qnas = quiz.getQnAImageEntities().stream()
                 .sorted(Comparator.comparing(QnAImageEntity::getSequence_number))
                 .map(image -> QuizDTO.GetResponse.QnA.builder()
                         .questionUrl(image.getImage_url())
@@ -374,6 +370,9 @@ public class QuizServiceImpl implements QuizService {
                         .answerArray(image.getAnswer())
                         .build())
                 .toArray(QuizDTO.GetResponse.QnA[]::new);
+
+        // 대표 이미지 지정
+        String thumbnailUrl = quiz.getThumbnail_url() != null ? quiz.getThumbnail_url() : qnas[0].getQuestionUrl();
 
         if (requestDto.getPlay() == null || requestDto.getPlay()) {
             // 문제 순서 랜점 정렬
@@ -403,23 +402,81 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public QuizDTO.GetListResponse getQuizList(QuizDTO.GetListRequest requestDto) {
+        QuizDTO.QuizListQuery quizQuery = new QuizDTO.QuizListQuery();
+
         // 정렬 방식 설정
         switch (requestDto.getSort()) {
             case "1":
+                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "updated_at"));
                 break;
             case "2":
+                // TODO: 인기순 정렬 기능 필요
                 break;
             case "3":
+                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "play_count"));
                 break;
             case "4":
-                break;
-            default:
+                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "report_count"));
                 break;
         }
 
+        // 퀴즈 종류 설정
+        if (requestDto.getType() != null) {
+            switch (requestDto.getType()) {
+                case "1":
+                    quizQuery.setType("IMAGE");
+                    break;
+                case "2":
+                    quizQuery.setType("SOUND");
+                    break;
+                default:
+                    quizQuery.setType(null);
+                    break;
+            }
+        }
 
+        // 접근 종류 설정
+        if (requestDto.getAccess() != null) {
+            switch (requestDto.getAccess()) {
+                case "1":
+                    quizQuery.setAccess(false);
+                case "2":
+                default:
+                    quizQuery.setAccess(null);
+            }
+        } else {
+            quizQuery.setAccess(true);
+        }
 
-        return null;
+        // 퀴즈 업데이트 시간 설정
+        quizQuery.setTimeStamp(requestDto.getTimeStamp() != null ? requestDto.getTimeStamp() : null);
+
+        // 퀴즈 순번 설정
+        quizQuery.setSeqNum(requestDto.getSeqNum() != null ? requestDto.getSeqNum() : null);
+
+        // 검색어 설정
+        quizQuery.setSearchWord(requestDto.getSearchWord() != null ? requestDto.getSearchWord() : null);
+
+        // 퀴즈 개수 설정 (기본값:20)
+        quizQuery.setCount(requestDto.getCount() != null ? requestDto.getCount() : 20);
+
+        // 사용자 설정
+        if (requestDto.getUserOnly() != null && requestDto.getUserOnly()) {
+            // ID 존재 여부 확인
+            UserEntity user = userRepository.findById(requestDto.getUserId())
+                    .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
+
+            quizQuery.setUserPk(user.getUser_pk());
+        }
+
+        // DB 조회
+        QuizDTO.GetListResponse.Quiz[] quizs = quizRepository.findAllOrderByCustom(quizQuery)
+                .toArray(QuizDTO.GetListResponse.Quiz[]::new);
+
+        return QuizDTO.GetListResponse.builder()
+                .quizCount(quizs.length)
+                .quizArray(quizs)
+                .build();
     }
 
 
