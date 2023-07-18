@@ -22,6 +22,29 @@ public class UserServiceImpl implements UserService {
     private final RedisIO redisIO;
 
     @Override
+    public UserDTO.CheckResponse checkToken(UserDTO.Check checkDto) {
+        if (checkDto.getId() == null) {
+            return UserDTO.CheckResponse.builder()
+                    .id(null)
+                    .valid(false)
+                    .admin(false)
+                    .build();
+        }
+
+        // ID 존재 여부 확인
+        UserEntity user = userRepository.findById(checkDto.getId())
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_USER));
+
+        boolean isAdmin = user.getAuthority().equals("ADMIN");
+
+        return UserDTO.CheckResponse.builder()
+                .id(user.getId())
+                .valid(true)
+                .admin(isAdmin)
+                .build();
+    }
+
+    @Override
     public UserDTO.CheckUserResponse checkUser(UserDTO.Check checkDto) {
         // ID 중복 검사
         boolean idExists = userRepository.findById(checkDto.getId()).isPresent();

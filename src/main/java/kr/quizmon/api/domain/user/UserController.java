@@ -29,13 +29,17 @@ public class UserController {
     /**
      * 토큰 확인
      */
-    @PreAuthorize("isAuthenticated()")
+    //@PreAuthorize("isAuthenticated()")
     @GetMapping("/check")
     public ResponseEntity<ResponseWrapper> checkApi(Authentication auth) {
-        UserDTO.CheckResponse responseBody = UserDTO.CheckResponse.builder()
-                .id(auth.getName())
-                .valid(true)
+        // 사용자 id 설정
+        String userId = auth != null ? auth.getName() : null;
+
+        UserDTO.Check checkDto = UserDTO.Check.builder()
+                .id(userId)
                 .build();
+
+        UserDTO.CheckResponse responseBody = userService.checkToken(checkDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(200)

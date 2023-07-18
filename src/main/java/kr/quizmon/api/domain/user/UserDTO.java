@@ -45,7 +45,7 @@ public class UserDTO {
 
         @Setter
         @NotBlank(message = "유효하지 않은 새로운 비밀번호입니다.")
-        @Size(max = 20, message = "비밀번호는 최대 20글자 까지만 가능합니다.")
+        @Size(min = 4, max = 20, message = "비밀번호는 최소 4, 최대 20글자 까지만 가능합니다.")
         private String newPassword;
     }
 
@@ -87,6 +87,7 @@ public class UserDTO {
     public static class CheckResponse {
         private String id;
         private boolean valid;
+        private boolean admin;
     }
 
     @Getter
