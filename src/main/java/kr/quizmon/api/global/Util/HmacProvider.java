@@ -1,7 +1,5 @@
 package kr.quizmon.api.global.Util;
 
-import kr.quizmon.api.global.config.CustomConfig;
-import lombok.RequiredArgsConstructor;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 
@@ -10,7 +8,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 
 @Component
-@RequiredArgsConstructor
 public class HmacProvider {
 
     public String genHmacBase64Code(String key, String message) throws Exception {
