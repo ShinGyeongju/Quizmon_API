@@ -440,9 +440,11 @@ public class QuizServiceImpl implements QuizService {
             switch (requestDto.getAccess()) {
                 case "1":
                     quizQuery.setAccess(false);
+                    break;
                 case "2":
                 default:
                     quizQuery.setAccess(null);
+                    break;
             }
         } else {
             quizQuery.setAccess(true);

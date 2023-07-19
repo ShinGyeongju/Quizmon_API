@@ -3,6 +3,7 @@ package kr.quizmon.api.global.config;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import kr.quizmon.api.domain.quiz.QuizRepositoryImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,6 +14,6 @@ public class QuerydslConfig {
 
     @Bean
     public JPAQueryFactory jpaQueryFactory(){
-        return new JPAQueryFactory(entityManager);
+        return new JPAQueryFactory(new QuizRepositoryImpl.LikeTemplates(), entityManager);
     }
 }

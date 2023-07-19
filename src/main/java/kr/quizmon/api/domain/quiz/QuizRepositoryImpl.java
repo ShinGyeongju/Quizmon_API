@@ -1,14 +1,13 @@
 package kr.quizmon.api.domain.quiz;
 
+import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.validation.constraints.Null;
-import kr.quizmon.api.domain.user.QUserEntity;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
@@ -17,6 +16,14 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 public class QuizRepositoryImpl implements QuizRepositoryCustom {
+    // Like에서 escape를 제외하기 위한 custom tamplate 제공
+    public static class LikeTemplates extends JPQLTemplates {
+        public LikeTemplates() {
+            add(Ops.LIKE, "{0} like {1}");
+        }
+    }
+
+
     private final JPAQueryFactory queryFactory;
 
     private final QQuizEntity quiz = QQuizEntity.quizEntity;
@@ -32,7 +39,6 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
                         quiz.description.as("comment"),
                         quiz.type,
                         quiz.thumbnail_url.coalesce(image.image_url).as("thumbnailUrl"),
-                        //quiz.thumbnail_url.as("thumbnailUrl"),
                         quiz.limit_time.as("limitTime"),
                         quiz.play_count.as("playCount"),
                         quiz.report_count.as("reportCount"),
@@ -44,14 +50,15 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
                         eqTimeStamp(queryDto.getTimeStamp()),
                         containsTitle(queryDto.getSearchWord()),
                         eqUser(queryDto.getUserPk()),
-                        eqSequenceNumber((short) 1))
+                        eqSequenceNumber((short) 1)
+                )
                 .orderBy(sortQuiz(queryDto.getOrder()))
                 .limit(queryDto.getCount())
                 .fetch();
     }
 
     private BooleanExpression eqTimeStamp(LocalDateTime timeStamp) {
-        return timeStamp == null ? null : quiz.updated_at.after(timeStamp);
+        return timeStamp == null ? null : quiz.updated_at.before(timeStamp);
     }
 
     private BooleanExpression eqType(String type) {
@@ -63,7 +70,7 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
     }
 
     private BooleanExpression containsTitle(String searchWord) {
-        return searchWord == null ? null : quiz.title.contains(searchWord);
+        return searchWord == null ? null : quiz.title.like("%" + searchWord + "%");
     }
 
     private BooleanExpression eqUser(UUID userPk) {
