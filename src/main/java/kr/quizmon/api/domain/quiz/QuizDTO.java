@@ -45,14 +45,16 @@ public class QuizDTO {
         private String signatureMessage;
 
         @NotNull(message = "유효하지 않은 정답 배열입니다.")
+        @Size(min = 5, max = 30, message = "문제는 최소 5, 최대 30개 까지만 가능합니다.")
         private QnA[] qnaArray;
 
         @Getter
         public static class QnA {
-            @Size(max = 4, message = "보기는 최대 4개 까지만 가능합니다.")
+            @Size(min = 4, max = 4, message = "보기는 4개만 가능합니다.")
             private String[] optionArray;
 
             @NotEmpty(message = "유효하지 않은 정답 배열입니다.")
+            @Size(min = 1, max = 3, message = "정답은 최소 5, 최대 30개 까지만 가능합니다.")
             private String[] answerArray;
         }
 
@@ -150,16 +152,18 @@ public class QuizDTO {
         private String signatureMessage;
 
         @NotNull(message = "유효하지 않은 정답 배열입니다.")
+        @Size(min = 5, max = 30, message = "문제는 최소 5, 최대 30개 까지만 가능합니다.")
         private QnA[] qnaArray;
 
         @Getter
         public static class QnA {
             private String questionUrl;
 
-            @Size(max = 4, message = "보기는 최대 4개 까지만 가능합니다.")
+            @Size(min = 4, max = 4, message = "보기는 4개만 가능합니다.")
             private String[] optionArray;
 
             @NotEmpty(message = "유효하지 않은 정답 배열입니다.")
+            @Size(min = 1, max = 3, message = "정답은 최소 5, 최대 30개 까지만 가능합니다.")
             private String[] answerArray;
         }
 
