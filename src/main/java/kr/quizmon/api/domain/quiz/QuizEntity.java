@@ -99,4 +99,9 @@ public class QuizEntity {
         this.multiple_choice = quiz.isMultiple_choice();
         this.qnAImageEntities = quiz.getQnAImageEntities();
     }
+
+    public void incrementReportCount() {
+        this.report_count++;
+    }
+
 }

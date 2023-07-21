@@ -507,5 +507,32 @@ public class QuizServiceImpl implements QuizService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public QuizDTO.CommonResponse reportQuiz(QuizDTO.CommonRequest commonDto) {
+        // 퀴즈 존재 여부 확인
+        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(commonDto.getQuizId()))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+
+        String redisKey = "reportQuiz" + commonDto.getQuizId();
+
+        // Redis에 없으면 Quiz 신고수 증가
+        if (!redisIO.hasKey(redisKey)) {
+            quiz.incrementReportCount();;
+
+            // Redis에 저장
+            redisIO.setQuizReport(redisKey, 60000);     // TTL 1분
+        }
+
+        return QuizDTO.CommonResponse.builder()
+                .quizId(commonDto.getQuizId())
+                .build();
+    }
+
+    @Override
+    public QuizDTO.CommonResponse reportResetQuiz(QuizDTO.CommonRequest commonRequest) {
+        return null;
+    }
+
 
 }

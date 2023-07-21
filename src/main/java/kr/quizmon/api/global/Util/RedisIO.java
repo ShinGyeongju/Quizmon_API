@@ -33,10 +33,6 @@ public class RedisIO {
         defaultRedisTemplate.opsForValue().set(key, value, milliSeconds, TimeUnit.MILLISECONDS);
     }
 
-    public boolean hasLogoutKey(String key) {
-        return Boolean.TRUE.equals(defaultRedisTemplate.hasKey(key));
-    }
-
     public void setQuiz(String key, QuizDTO.CreateRedis value, long milliSeconds) {
         quizRedisTemplate.opsForValue().set(key, value, milliSeconds, TimeUnit.MILLISECONDS);
     }
@@ -61,9 +57,19 @@ public class RedisIO {
         return stringSet.toArray(String[]::new);
     }
 
-    public void deleteValue(String key) {
-        quizRedisTemplate.delete(key);
+    public void setQuizReport(String key, long milliSeconds) {
+        defaultRedisTemplate.opsForValue().set(key, "quizReport", milliSeconds, TimeUnit.MILLISECONDS);
     }
+
+    public boolean hasKey(String key) {
+        return Boolean.TRUE.equals(defaultRedisTemplate.hasKey(key));
+    }
+
+    public void deleteValue(String key) {
+        defaultRedisTemplate.delete(key);
+    }
+
+
 
 
 }

@@ -200,5 +200,29 @@ public class QuizController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 신고
+     */
+    @GetMapping("/{id}/report")
+    public ResponseEntity<ResponseWrapper> reportApi(@PathVariable("id") String quizId) {
+        QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
+                .quizId(quizId)
+                .build();
+
+        QuizDTO.CommonResponse responseBody = quizService.reportQuiz(commonDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * 신고 초기화
+     */
+
 
 }

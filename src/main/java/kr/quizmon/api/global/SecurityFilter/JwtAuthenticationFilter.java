@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             //String token = jwtProvider.resolveHeaderToken(request);
 
             // token 유효성 검증
-            if (token != null && jwtProvider.validateToken(token) && !redisIO.hasLogoutKey(token)) {
+            if (token != null && jwtProvider.validateToken(token) && !redisIO.hasKey(token)) {
                 Authentication auth = jwtProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
