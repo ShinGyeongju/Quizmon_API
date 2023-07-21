@@ -97,6 +97,7 @@ public class QuizEntity {
         this.public_access = quiz.isPublic_access();
         this.random_question = quiz.isRandom_question();
         this.multiple_choice = quiz.isMultiple_choice();
+        this.question_count = quiz.getQuestion_count();
         this.qnAImageEntities = quiz.getQnAImageEntities();
     }
 

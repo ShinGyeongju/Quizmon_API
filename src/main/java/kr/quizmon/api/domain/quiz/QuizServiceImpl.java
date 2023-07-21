@@ -103,7 +103,7 @@ public class QuizServiceImpl implements QuizService {
 
         // ID 확인
         if (!quiz.getUserEntity().getId().equals(requestDto.getUserId())) {
-            throw new CustomApiException(ErrorCode.INVALID_QUIZ_ID);
+            throw new CustomApiException(ErrorCode.FORBIDDEN_USER);
         }
 
         // 이미지 업로드 여부 확인
