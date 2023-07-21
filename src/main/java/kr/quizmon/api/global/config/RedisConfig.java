@@ -28,7 +28,7 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, String> logoutRedisTemplate() {
+    public RedisTemplate<String, String> defaultRedisTemplate() {
         RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -46,4 +46,5 @@ public class RedisConfig {
 
         return redisTemplate;
     }
+
 }

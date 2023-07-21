@@ -1,13 +1,13 @@
 package kr.quizmon.api.domain.quiz;
 
-import com.querydsl.core.types.Ops;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.*;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPQLTemplates;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.ast.spi.SqlExpressionAccess;
+import org.hibernate.sql.ast.spi.SqlExpressionResolver;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
@@ -31,10 +31,10 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
 
     @Override
     public List<QuizDTO.GetListResponse.Quiz> findAllOrderByCustom(QuizDTO.QuizListQuery queryDto) {
-        return queryFactory
+        JPAQuery<QuizDTO.GetListResponse.Quiz> query = queryFactory
                 .select(Projections.fields(QuizDTO.GetListResponse.Quiz.class,
                         quiz.quizId,
-                        quiz.urlId.as("urlId"),
+                        quiz.urlId,
                         quiz.title,
                         quiz.description.as("comment"),
                         quiz.type,
@@ -50,9 +50,15 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
                         eqTimeStamp(queryDto.getTimeStamp()),
                         containsTitle(queryDto.getSearchWord()),
                         eqUser(queryDto.getUserPk()),
-                        eqSequenceNumber((short) 1)
-                )
-                .orderBy(sortQuiz(queryDto.getOrder()))
+                        inQuizIdArray(queryDto.getQuizIdArray()),
+                        image.sequence_number.eq((short) 1)
+                );
+
+        if (queryDto.getOrder() != null) query.orderBy(sortQuiz(queryDto.getOrder()));
+        // TODO: No-Offset 방식으로 전환 필요
+        if (queryDto.getSeqNum() != null) query.offset(queryDto.getSeqNum() - 1);
+
+        return query
                 .limit(queryDto.getCount())
                 .fetch();
     }
@@ -77,7 +83,13 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
         return userPk == null ? null : quiz.userEntity.user_pk.eq(userPk);
     }
 
+    private BooleanExpression inQuizIdArray(UUID[] ids) {
+        return ids == null ? null : quiz.quizId.in(ids);
+    }
+
     private OrderSpecifier<?> sortQuiz(Sort.Order order) {
+        //if (order == null) return new OrderSpecifier<>(Order.ASC, NullExpression.DEFAULT, OrderSpecifier.NullHandling.Default);
+
         Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
         return switch (order.getProperty()) {
             case "updated_at" -> new OrderSpecifier<>(direction, quiz.updated_at);
@@ -85,10 +97,6 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
             case "report_count" -> new OrderSpecifier<>(direction, quiz.report_count);
             default -> new OrderSpecifier<>(Order.DESC, quiz.updated_at);
         };
-    }
-
-    private BooleanExpression eqSequenceNumber(Short seqNum) {
-        return seqNum == null ? null : image.sequence_number.eq(seqNum);
     }
 
 

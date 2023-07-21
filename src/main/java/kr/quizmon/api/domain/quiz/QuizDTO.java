@@ -20,7 +20,7 @@ public class QuizDTO {
         private UUID quizId;
 
         @NotBlank(message = "유효하지 않은 제목입니다.")
-        @Size(max = 30, message = "제목은 최대 30글자 까지만 가능합니다.")
+        @Size(min = 5, max = 30, message = "제목은 최소 5, 최대 30글자 까지만 가능합니다.")
         private String title;
 
         @Size(max = 100, message = "설명은 최대 100글자 까지만 가능합니다.")
@@ -211,15 +211,13 @@ public class QuizDTO {
         @Pattern(regexp="[12]" , message="유효하지 않은 접근 종류입니다.")
         private String access;
 
-        //@Pattern(regexp="[0-9]*" , message="유효하지 않은 업데이트 시간입니다.")
         private LocalDateTime timeStamp;
 
-        //@Pattern(regexp="[0-9]*" , message="유효하지 않은 퀴즈 순번입니다.")
+        @Positive(message = "유효하지 않은 시작 순번입니다.")
         private Integer seqNum;
 
         private String searchWord;
 
-        //@Pattern(regexp="[0-9]*" , message="유효하지 않은 퀴즈 개수입니다.")
         private Integer count;
 
         private Boolean userOnly;
@@ -236,6 +234,7 @@ public class QuizDTO {
         private String searchWord;
         private long count;
         private Sort.Order order;
+        private UUID[] quizIdArray;
     }
 
     @Getter
@@ -309,7 +308,6 @@ public class QuizDTO {
         private Quiz[] quizArray;
 
         @Getter
-        //@Builder
         @NoArgsConstructor
         public static class Quiz {
             private UUID quizId;
@@ -322,7 +320,7 @@ public class QuizDTO {
             private int playCount;
             private int reportCount;
             private LocalDateTime timeStamp;
-            private int seqNum;
+            //private int seqNum;
         }
     }
 

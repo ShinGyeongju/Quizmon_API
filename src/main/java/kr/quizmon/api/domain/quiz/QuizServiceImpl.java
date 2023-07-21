@@ -20,6 +20,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
+    public static String popularityRankingKey;
+
     private final QuizRepository quizRepository;
     private final QnAImageRepository qnAImageRepository;
     private final UserRepository userRepository;
@@ -228,7 +230,7 @@ public class QuizServiceImpl implements QuizService {
         }
 
         // Redis에서 퀴즈 정보 삭제
-        redisIO.deleteQuiz(quizId);
+        redisIO.deleteValue(quizId);
 
         String thumbnailUrl = null;
         List<QnAImageEntity> qnas = null;
@@ -404,22 +406,6 @@ public class QuizServiceImpl implements QuizService {
     public QuizDTO.GetListResponse getQuizList(QuizDTO.GetListRequest requestDto) {
         QuizDTO.QuizListQuery quizQuery = new QuizDTO.QuizListQuery();
 
-        // 정렬 방식 설정
-        switch (requestDto.getSort()) {
-            case "1":
-                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "updated_at"));
-                break;
-            case "2":
-                // TODO: 인기순 정렬 기능 필요
-                break;
-            case "3":
-                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "play_count"));
-                break;
-            case "4":
-                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "report_count"));
-                break;
-        }
-
         // 퀴즈 종류 설정
         if (requestDto.getType() != null) {
             switch (requestDto.getType()) {
@@ -429,10 +415,9 @@ public class QuizServiceImpl implements QuizService {
                 case "2":
                     quizQuery.setType("SOUND");
                     break;
-                default:
-                    quizQuery.setType(null);
-                    break;
             }
+        } else {
+            quizQuery.setType(null);
         }
 
         // 접근 종류 설정
@@ -442,7 +427,6 @@ public class QuizServiceImpl implements QuizService {
                     quizQuery.setAccess(false);
                     break;
                 case "2":
-                default:
                     quizQuery.setAccess(null);
                     break;
             }
@@ -451,7 +435,6 @@ public class QuizServiceImpl implements QuizService {
         }
 
         // 퀴즈 업데이트 시간 설정
-        quizQuery.setTimeStamp(requestDto.getTimeStamp() != null ? requestDto.getTimeStamp() : null);
 
         // 퀴즈 순번 설정
         quizQuery.setSeqNum(requestDto.getSeqNum() != null ? requestDto.getSeqNum() : null);
@@ -471,9 +454,52 @@ public class QuizServiceImpl implements QuizService {
             quizQuery.setUserPk(user.getUser_pk());
         }
 
-        // DB 조회
-        QuizDTO.GetListResponse.Quiz[] quizs = quizRepository.findAllOrderByCustom(quizQuery)
-                .toArray(QuizDTO.GetListResponse.Quiz[]::new);
+        QuizDTO.GetListResponse.Quiz[] quizs = null;
+        String[] sortedQuizIds = null;
+
+        // 정렬 방식 설정
+        switch (requestDto.getSort()) {
+            case "1":
+                quizQuery.setTimeStamp(requestDto.getTimeStamp() != null ? requestDto.getTimeStamp() : null);
+                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "updated_at"));
+                break;
+            case "2":
+                long start = requestDto.getSeqNum() != null ? requestDto.getSeqNum() - 1 : 0;
+                long end = start + quizQuery.getCount();
+
+                sortedQuizIds = redisIO.getPopularityRanking("popularityRanking", start, end);
+                if (sortedQuizIds == null) {
+                    quizs = new QuizDTO.GetListResponse.Quiz[0];
+                    break;
+                }
+
+                quizQuery.setQuizIdArray(Arrays.stream(sortedQuizIds)
+                        .map(UUID::fromString)
+                        .toArray(UUID[]::new));
+                break;
+            case "3":
+                quizQuery.setSeqNum(requestDto.getSeqNum() != null ? requestDto.getSeqNum() : null);
+                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "play_count"));
+                break;
+            case "4":
+                quizQuery.setSeqNum(requestDto.getSeqNum() != null ? requestDto.getSeqNum() : null);
+                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "report_count"));
+                break;
+        }
+
+        if (quizs == null) {
+            // DB 조회
+            quizs = quizRepository.findAllOrderByCustom(quizQuery)
+                    .toArray(QuizDTO.GetListResponse.Quiz[]::new);
+
+            // 실시간 인기순으로 정렬
+            if (quizs.length > 2 && requestDto.getSort().equals("2")) {
+                List<String> sortedQuizIdList = Arrays.stream(sortedQuizIds).toList();
+                quizs = Arrays.stream(quizs)
+                        .sorted(Comparator.comparing(quiz -> sortedQuizIdList.indexOf(quiz.getQuizId().toString())))
+                        .toArray(QuizDTO.GetListResponse.Quiz[]::new);
+            }
+        }
 
         return QuizDTO.GetListResponse.builder()
                 .quizCount(quizs.length)
