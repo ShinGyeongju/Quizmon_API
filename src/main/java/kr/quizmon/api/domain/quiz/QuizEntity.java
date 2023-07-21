@@ -104,4 +104,8 @@ public class QuizEntity {
         this.report_count++;
     }
 
+    public void resetReportCount() {
+        this.report_count = 0;
+    }
+
 }

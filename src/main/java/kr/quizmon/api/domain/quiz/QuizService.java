@@ -8,7 +8,7 @@ public interface QuizService {
     QuizDTO.GetResponse getQuiz(QuizDTO.GetRequest requestDto);
     QuizDTO.GetListResponse getQuizList(QuizDTO.GetListRequest requestDto);
     QuizDTO.CommonResponse reportQuiz(QuizDTO.CommonRequest commonDto);
-    QuizDTO.CommonResponse reportResetQuiz(QuizDTO.CommonRequest commonRequest);
+    QuizDTO.CommonResponse reportResetQuiz(QuizDTO.CommonRequest commonDto);
 
 
 }

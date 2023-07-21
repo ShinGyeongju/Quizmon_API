@@ -530,8 +530,20 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public QuizDTO.CommonResponse reportResetQuiz(QuizDTO.CommonRequest commonRequest) {
-        return null;
+    @Transactional
+    public QuizDTO.CommonResponse reportResetQuiz(QuizDTO.CommonRequest commonDto) {
+        // 퀴즈 존재 여부 확인
+        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(commonDto.getQuizId()))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+
+        // Quiz 신고수가 0보다 크면 초기화
+        if (quiz.getReport_count() > 0) {
+            quiz.resetReportCount();
+        }
+
+        return QuizDTO.CommonResponse.builder()
+                .quizId(commonDto.getQuizId())
+                .build();
     }
 
 

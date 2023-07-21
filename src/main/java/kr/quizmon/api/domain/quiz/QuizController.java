@@ -223,6 +223,26 @@ public class QuizController {
     /**
      * 신고 초기화
      */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{id}/report/reset")
+    public ResponseEntity<ResponseWrapper> reportResetApi(@PathVariable("id") String quizId, Authentication auth) {
+        // 관리자 권한 확인
+        if (!auth.getAuthorities().toArray()[0].toString().equals("ADMIN")) throw new CustomApiException(ErrorCode.FORBIDDEN_USER);
+
+        QuizDTO.CommonRequest commonDto = QuizDTO.CommonRequest.builder()
+                .quizId(quizId)
+                .build();
+
+        QuizDTO.CommonResponse responseBody = quizService.reportResetQuiz(commonDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
 
 }
