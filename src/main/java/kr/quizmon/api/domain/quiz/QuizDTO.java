@@ -234,7 +234,6 @@ public class QuizDTO {
         private String searchWord;
         private long count;
         private Sort.Order order;
-        private UUID[] quizIdArray;
     }
 
     @Getter

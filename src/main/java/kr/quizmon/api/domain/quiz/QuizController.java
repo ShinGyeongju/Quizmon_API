@@ -244,5 +244,14 @@ public class QuizController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * 플레이 결과 등록
+     */
+//    @PostMapping("/{id}/play/result")
+//    public ResponseEntity<ResponseWrapper> createScoreApi(@PathVariable("id") String quizId) {
+//
+//
+//
+//    }
 
 }

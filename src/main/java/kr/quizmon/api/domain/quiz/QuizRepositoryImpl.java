@@ -50,11 +50,9 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
                         eqTimeStamp(queryDto.getTimeStamp()),
                         containsTitle(queryDto.getSearchWord()),
                         eqUser(queryDto.getUserPk()),
-                        inQuizIdArray(queryDto.getQuizIdArray()),
-                        image.sequence_number.eq((short) 1)
-                );
+                        image.sequence_number.eq((short) 1))
+                .orderBy(sortQuiz(queryDto.getOrder()));
 
-        if (queryDto.getOrder() != null) query.orderBy(sortQuiz(queryDto.getOrder()));
         // TODO: No-Offset 방식으로 전환 필요
         if (queryDto.getSeqNum() != null) query.offset(queryDto.getSeqNum() - 1);
 
@@ -83,16 +81,11 @@ public class QuizRepositoryImpl implements QuizRepositoryCustom {
         return userPk == null ? null : quiz.userEntity.user_pk.eq(userPk);
     }
 
-    private BooleanExpression inQuizIdArray(UUID[] ids) {
-        return ids == null ? null : quiz.quizId.in(ids);
-    }
-
     private OrderSpecifier<?> sortQuiz(Sort.Order order) {
-        //if (order == null) return new OrderSpecifier<>(Order.ASC, NullExpression.DEFAULT, OrderSpecifier.NullHandling.Default);
-
         Order direction = order.getDirection().isAscending() ? Order.ASC : Order.DESC;
         return switch (order.getProperty()) {
             case "updated_at" -> new OrderSpecifier<>(direction, quiz.updated_at);
+            case "popularity_score" -> new OrderSpecifier<>(direction, quiz.popularity_score);
             case "play_count" -> new OrderSpecifier<>(direction, quiz.play_count);
             case "report_count" -> new OrderSpecifier<>(direction, quiz.report_count);
             default -> new OrderSpecifier<>(Order.DESC, quiz.updated_at);

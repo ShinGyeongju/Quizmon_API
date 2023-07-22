@@ -434,7 +434,6 @@ public class QuizServiceImpl implements QuizService {
             quizQuery.setAccess(true);
         }
 
-        // 퀴즈 업데이트 시간 설정
 
         // 퀴즈 순번 설정
         quizQuery.setSeqNum(requestDto.getSeqNum() != null ? requestDto.getSeqNum() : null);
@@ -454,53 +453,34 @@ public class QuizServiceImpl implements QuizService {
             quizQuery.setUserPk(user.getUser_pk());
         }
 
-        QuizDTO.GetListResponse.Quiz[] quizs = null;
-        String[] sortedQuizIds = null;
-
         // 정렬 방식 설정
         switch (requestDto.getSort()) {
             case "1":
+                // 퀴즈 업데이트 시간 설정
                 quizQuery.setTimeStamp(requestDto.getTimeStamp() != null ? requestDto.getTimeStamp() : null);
                 quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "updated_at"));
                 break;
             case "2":
-                long start = requestDto.getSeqNum() != null ? requestDto.getSeqNum() - 1 : 0;
-                long end = start + quizQuery.getCount();
-
-                sortedQuizIds = redisIO.getPopularityRanking("popularityRanking", start, end);
-                if (sortedQuizIds == null) {
-                    quizs = new QuizDTO.GetListResponse.Quiz[0];
-                    break;
-                }
-
-                quizQuery.setQuizIdArray(Arrays.stream(sortedQuizIds)
-                        .map(UUID::fromString)
-                        .toArray(UUID[]::new));
+                // 퀴즈 순번 설정
+                quizQuery.setSeqNum(requestDto.getSeqNum() != null ? requestDto.getSeqNum() : null);
+                quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "popularity_score"));
                 break;
             case "3":
+                // 퀴즈 순번 설정
                 quizQuery.setSeqNum(requestDto.getSeqNum() != null ? requestDto.getSeqNum() : null);
                 quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "play_count"));
                 break;
             case "4":
+                // 퀴즈 순번 설정
                 quizQuery.setSeqNum(requestDto.getSeqNum() != null ? requestDto.getSeqNum() : null);
                 quizQuery.setOrder(new Sort.Order(Sort.Direction.DESC, "report_count"));
                 break;
         }
 
-        if (quizs == null) {
-            // DB 조회
-            quizs = quizRepository.findAllOrderByCustom(quizQuery)
-                    .toArray(QuizDTO.GetListResponse.Quiz[]::new);
-
-            // 실시간 인기순으로 정렬
-            if (quizs.length > 2 && requestDto.getSort().equals("2")) {
-                List<String> sortedQuizIdList = Arrays.stream(sortedQuizIds).toList();
-                quizs = Arrays.stream(quizs)
-                        .sorted(Comparator.comparing(quiz -> sortedQuizIdList.indexOf(quiz.getQuizId().toString())))
-                        .toArray(QuizDTO.GetListResponse.Quiz[]::new);
-            }
-        }
-
+        // DB 조회
+        QuizDTO.GetListResponse.Quiz[] quizs = quizRepository.findAllOrderByCustom(quizQuery)
+                .toArray(QuizDTO.GetListResponse.Quiz[]::new);
+        
         return QuizDTO.GetListResponse.builder()
                 .quizCount(quizs.length)
                 .quizArray(quizs)

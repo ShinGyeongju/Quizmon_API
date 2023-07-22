@@ -64,6 +64,9 @@ public class QuizEntity {
     @Column(name = "report_count")
     private int report_count;
 
+    @Column(name = "popularity_score")
+    private int popularity_score;
+
     @Column(name = "created_at")
     private LocalDateTime created_at;
 
