@@ -217,7 +217,7 @@ public class QuizController {
                 .result(responseBody)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -241,17 +241,34 @@ public class QuizController {
                 .result(responseBody)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.ok(response);
     }
 
     /**
      * 플레이 결과 등록
      */
-//    @PostMapping("/{id}/play/result")
-//    public ResponseEntity<ResponseWrapper> createScoreApi(@PathVariable("id") String quizId) {
-//
-//
-//
-//    }
+    @PostMapping("/{id}/play/result")
+    public ResponseEntity<ResponseWrapper> createScoreApi(@Valid @RequestBody QuizDTO.PlayResultRequest requestDto, BindingResult bindingResult, @PathVariable("id") String quizId) {
+        if (bindingResult.hasErrors()) {
+            ObjectError error = bindingResult.getAllErrors().get(0);
+            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+        }
+
+        // 유효성 검사
+        if (requestDto.getAnswerCount() > requestDto.getQuestionCount()) throw new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 정답 개수입니다.");
+
+        // quizId 설정
+        requestDto.setQuizId(quizId);
+
+        QuizDTO.PlayResultResponse responseBody = quizService.createPlayResult(requestDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
 }

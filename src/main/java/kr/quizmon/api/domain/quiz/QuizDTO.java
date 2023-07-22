@@ -190,7 +190,6 @@ public class QuizDTO {
     public static class GetRequest {
         private String userId;
         private String userAuthority;
-        //private String quizId;
         private String urlId;
         private Boolean play;
     }
@@ -234,6 +233,19 @@ public class QuizDTO {
         private String searchWord;
         private long count;
         private Sort.Order order;
+    }
+
+    @Getter
+    @Builder
+    public static class PlayResultRequest {
+        @Setter
+        private String quizId;
+
+        @NotNull(message = "유효하지 않은 문제 개수입니다.")
+        private int questionCount;
+
+        @NotNull(message = "유효하지 않은 정답 개수입니다.")
+        private int answerCount;
     }
 
     @Getter
@@ -319,8 +331,16 @@ public class QuizDTO {
             private int playCount;
             private int reportCount;
             private LocalDateTime timeStamp;
-            //private int seqNum;
         }
+    }
+
+    @Getter
+    @Builder
+    static public class PlayResultResponse {
+        private String quizId;
+        private int playCount;
+        private short score;
+        private short topPercent;
     }
 
 }

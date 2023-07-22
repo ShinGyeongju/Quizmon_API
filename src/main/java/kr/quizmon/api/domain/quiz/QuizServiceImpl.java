@@ -25,6 +25,7 @@ public class QuizServiceImpl implements QuizService {
     private final QuizRepository quizRepository;
     private final QnAImageRepository qnAImageRepository;
     private final UserRepository userRepository;
+    private final ScoreRepository scoreRepository;
     private final RedisIO redisIO;
     private final HmacProvider hmacProvider;
     private final S3Manager s3Manager;
@@ -480,7 +481,7 @@ public class QuizServiceImpl implements QuizService {
         // DB 조회
         QuizDTO.GetListResponse.Quiz[] quizs = quizRepository.findAllOrderByCustom(quizQuery)
                 .toArray(QuizDTO.GetListResponse.Quiz[]::new);
-        
+
         return QuizDTO.GetListResponse.builder()
                 .quizCount(quizs.length)
                 .quizArray(quizs)
@@ -526,5 +527,37 @@ public class QuizServiceImpl implements QuizService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public QuizDTO.PlayResultResponse createPlayResult(QuizDTO.PlayResultRequest requestDto) {
+        // 퀴즈 존재 여부 확인
+        QuizEntity quiz = quizRepository.findByQuizId(UUID.fromString(requestDto.getQuizId()))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_QUIZ_ID));
+
+        // 점수 계산 (백분율)
+        short score = (short) (100 / requestDto.getQuestionCount() * requestDto.getAnswerCount());
+
+        // 점수 저장
+        ScoreEntity scoreEntity = scoreRepository.save(ScoreEntity.builder()
+                .quizEntity(quiz)
+                .score(score)
+                .build());
+
+        // 전체 개수 가져오기
+        int totalCount = scoreRepository.countByQuizEntity(quiz);
+
+        // 등수 가져오기
+        int rank = scoreRepository.findRankByQuizIdAndScoreId(quiz.getQuizId(), scoreEntity.getScore_id());
+
+        // 상위 퍼센트 계산
+        short topPercent = (short) (rank / (double) totalCount * 100);
+
+        return QuizDTO.PlayResultResponse.builder()
+                .quizId(requestDto.getQuizId())
+                .playCount(totalCount)
+                .score(score)
+                .topPercent(topPercent)
+                .build();
+    }
 
 }

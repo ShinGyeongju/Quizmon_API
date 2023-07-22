@@ -9,6 +9,6 @@ public interface QuizService {
     QuizDTO.GetListResponse getQuizList(QuizDTO.GetListRequest requestDto);
     QuizDTO.CommonResponse reportQuiz(QuizDTO.CommonRequest commonDto);
     QuizDTO.CommonResponse reportResetQuiz(QuizDTO.CommonRequest commonDto);
-
+    QuizDTO.PlayResultResponse createPlayResult(QuizDTO.PlayResultRequest requestDto);
 
 }
