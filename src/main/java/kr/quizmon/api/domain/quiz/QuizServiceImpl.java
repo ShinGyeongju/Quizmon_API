@@ -20,8 +20,6 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
-    public static String popularityRankingKey;
-
     private final QuizRepository quizRepository;
     private final QnAImageRepository qnAImageRepository;
     private final UserRepository userRepository;
@@ -404,6 +402,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public QuizDTO.GetListResponse getQuizList(QuizDTO.GetListRequest requestDto) {
         QuizDTO.QuizListQuery quizQuery = new QuizDTO.QuizListQuery();
 

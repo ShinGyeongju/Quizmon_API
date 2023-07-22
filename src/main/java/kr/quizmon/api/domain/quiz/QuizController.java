@@ -25,15 +25,6 @@ public class QuizController {
 
     private final List<Short> VALID_LIMIT_TIME = List.of((short)3, (short)4, (short)5, (short)7, (short)10);
 
-    // TEST
-    @GetMapping("/test")
-    @PreAuthorize("isAuthenticated()")
-    public String testApi(Authentication auth) {
-
-
-        return "Done";
-    }
-
     /**
      * 이미지 퀴즈 생성
      */
@@ -119,7 +110,7 @@ public class QuizController {
     }
 
     /**
-     * 삭제
+     * 퀴즈 삭제
      */
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{id}")
@@ -141,7 +132,7 @@ public class QuizController {
     }
 
     /**
-     * 상세 조회
+     * 퀴즈 상세 조회
      */
     @GetMapping("/{id}")
     public ResponseEntity<ResponseWrapper> getQuizApi(@PathVariable("id") String urlId, @Valid QuizDTO.GetRequest requestDto, BindingResult bindingResult, Authentication auth) {
@@ -170,7 +161,7 @@ public class QuizController {
     }
 
     /**
-     * 목록 조회
+     * 퀴즈 목록 조회
      */
     @GetMapping("/list")
     public ResponseEntity<ResponseWrapper> getQuizListApi(@Valid QuizDTO.GetListRequest requestDto, BindingResult bindingResult, Authentication auth) {
@@ -201,7 +192,7 @@ public class QuizController {
     }
 
     /**
-     * 신고
+     * 퀴즈 신고
      */
     @GetMapping("/{id}/report")
     public ResponseEntity<ResponseWrapper> reportApi(@PathVariable("id") String quizId) {
@@ -221,7 +212,7 @@ public class QuizController {
     }
 
     /**
-     * 신고 초기화
+     * 퀴즈 신고 초기화
      */
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/{id}/report/reset")
@@ -245,7 +236,7 @@ public class QuizController {
     }
 
     /**
-     * 플레이 결과 등록
+     * 퀴즈 플레이 결과 등록
      */
     @PostMapping("/{id}/play/result")
     public ResponseEntity<ResponseWrapper> createScoreApi(@Valid @RequestBody QuizDTO.PlayResultRequest requestDto, BindingResult bindingResult, @PathVariable("id") String quizId) {
