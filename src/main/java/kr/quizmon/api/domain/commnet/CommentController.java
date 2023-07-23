@@ -41,6 +41,29 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * 댓글 목록 조회
+     */
+    @GetMapping("/{id}/list")
+    public ResponseEntity<ResponseWrapper> getCommentListApi(@Valid CommentDTO.GetListRequest requestDto, @PathVariable("id") String quizId, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            ObjectError error = bindingResult.getAllErrors().get(0);
+            throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
+        }
+
+        // quizId 설정
+        requestDto.setQuizId(quizId);
+
+        CommentDTO.GetListResponse responseBody = commentService.getCommentList(requestDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }

@@ -33,6 +33,6 @@ public class CommentEntity {
     private short report_count;
 
     @Column(name = "created_at")
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
 }

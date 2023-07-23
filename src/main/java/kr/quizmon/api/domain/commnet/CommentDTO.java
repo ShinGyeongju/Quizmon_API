@@ -2,6 +2,7 @@ package kr.quizmon.api.domain.commnet;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import kr.quizmon.api.domain.quiz.QuizEntity;
 import lombok.Builder;
@@ -32,6 +33,19 @@ public class CommentDTO {
                     .content(content)
                     .build();
         }
+    }
+
+    @Getter
+    @Builder
+    public static class GetListRequest {
+        @Setter
+        private String quizId;
+
+        @NotNull(message = "유효하지 않은 페이지입니다.")
+        private int page;
+
+        @Positive(message = "유효하지 않은 댓글 개수입니다.")
+        private Integer count;
     }
 
     @Getter

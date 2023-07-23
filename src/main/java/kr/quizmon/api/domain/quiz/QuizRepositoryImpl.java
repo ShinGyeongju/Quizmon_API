@@ -6,8 +6,6 @@ import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.ast.spi.SqlExpressionAccess;
-import org.hibernate.sql.ast.spi.SqlExpressionResolver;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
