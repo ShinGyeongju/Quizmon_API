@@ -91,5 +91,24 @@ public class CommentController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 댓글 신고
+     */
+    @GetMapping("/{id}/report")
+    public ResponseEntity<ResponseWrapper> reportCommentApi(@PathVariable("id") String commentId) {
+        CommentDTO.CommonRequest commonDto = CommentDTO.CommonRequest.builder()
+                .commentId(commentId)
+                .build();
+
+        CommentDTO.CommonResponse responseBody = commentService.reportComment(commonDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 }

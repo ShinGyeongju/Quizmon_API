@@ -19,7 +19,7 @@ public class CommentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int comment_id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id")
     private QuizEntity quizEntity;
 
@@ -34,5 +34,9 @@ public class CommentEntity {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public void incrementReportCount() {
+        this.report_count++;
+    }
 
 }

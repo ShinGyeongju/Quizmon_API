@@ -2,6 +2,7 @@ package kr.quizmon.api.domain.commnet;
 
 import kr.quizmon.api.domain.quiz.QuizEntity;
 import kr.quizmon.api.domain.quiz.QuizRepository;
+import kr.quizmon.api.global.Util.RedisIO;
 import kr.quizmon.api.global.common.CustomApiException;
 import kr.quizmon.api.global.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final QuizRepository quizRepository;
+    private final RedisIO redisIO;
 
     @Override
     @Transactional
@@ -76,7 +78,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentDTO.CommonResponse deleteComment(CommentDTO.CommonRequest commonDto) {
         // 댓글 존재 여부 확인
-        int id = commentRepository.findById(Integer.parseInt(commonDto.getCommentId()))
+        int id = commentRepository.findByIdCustom(Integer.parseInt(commonDto.getCommentId()))
                 .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_COMMENT_ID));
 
         // 댓글 삭제
@@ -90,6 +92,27 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentDTO.CommonResponse reportComment(CommentDTO.CommonRequest commonDto) {
-        return null;
+        // 댓글 존재 여부 확인
+        CommentEntity comment = commentRepository.findById(Integer.parseInt(commonDto.getCommentId()))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_COMMENT_ID));
+
+        String redisKey = "reportComment" + comment.getComment_id();
+
+        // Redis에 없으면 Quiz 신고수 증가
+        if (!redisIO.hasKey(redisKey)) {
+            comment.incrementReportCount();;
+
+            if (comment.getReport_count() >= 5) {
+                // 댓글 삭제
+                commentRepository.deleteById(comment.getComment_id());
+            } else {
+                // Redis에 저장
+                redisIO.setQuizReport(redisKey, 60000);     // TTL 1분
+            }
+        }
+
+        return CommentDTO.CommonResponse.builder()
+                .commentId(String.valueOf(comment.getComment_id()))
+                .build();
     }
 }

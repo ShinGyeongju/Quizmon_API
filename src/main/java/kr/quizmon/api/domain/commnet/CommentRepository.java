@@ -16,7 +16,7 @@ public interface CommentRepository extends JpaRepository<CommentEntity, Integer>
     Page<CommentEntity> findByQuizEntity(QuizEntity quiz, Pageable page);
 
     @Query("SELECT comment_id FROM tb_comment WHERE comment_id = :commentId")
-    Optional<Integer> findById(@Param("commentId") int commentId);
+    Optional<Integer> findByIdCustom(@Param("commentId") int commentId);
 
     @Modifying
     @Transactional
