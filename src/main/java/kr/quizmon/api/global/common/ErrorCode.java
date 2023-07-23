@@ -14,6 +14,7 @@ public enum ErrorCode {
     ALREADY_EXISTS_USER(HttpStatus.BAD_REQUEST, 10303, "이미 존재하는 아이디입니다."),
     INVALID_QUIZ_ID(HttpStatus.BAD_REQUEST, 10400, "유효하지 않은 퀴즈 아이디입니다."),
     INVALID_QUIZ_URL_ID(HttpStatus.BAD_REQUEST, 10401, "유효하지 않은 퀴즈 URL 아이디입니다."),
+    INVALID_COMMENT_ID(HttpStatus.BAD_REQUEST, 10402, "유효하지 않은 댓글 아이디입니다."),
 
     // 401 Unauthorized
     INVALID_USER(HttpStatus.UNAUTHORIZED, 11300, "유효하지 않은 사용자입니다."),

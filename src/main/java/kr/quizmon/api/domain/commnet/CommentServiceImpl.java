@@ -75,7 +75,16 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public CommentDTO.CommonResponse deleteComment(CommentDTO.CommonRequest commonDto) {
-        return null;
+        // 댓글 존재 여부 확인
+        int id = commentRepository.findById(Integer.parseInt(commonDto.getCommentId()))
+                .orElseThrow(() -> new CustomApiException(ErrorCode.INVALID_COMMENT_ID));
+
+        // 댓글 삭제
+        commentRepository.deleteById(id);
+
+        return CommentDTO.CommonResponse.builder()
+                .commentId(String.valueOf(id))
+                .build();
     }
 
     @Override

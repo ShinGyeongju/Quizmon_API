@@ -7,6 +7,8 @@ import kr.quizmon.api.global.common.ResponseWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
@@ -55,6 +57,30 @@ public class CommentController {
         requestDto.setQuizId(quizId);
 
         CommentDTO.GetListResponse responseBody = commentService.getCommentList(requestDto);
+
+        ResponseWrapper response = ResponseWrapper.builder()
+                .code(200)
+                .message("OK")
+                .result(responseBody)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 댓글 삭제
+     */
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseWrapper> deleteCommentApi(@PathVariable("id") String commentId, Authentication auth) {
+        // 관리자 권한 확인
+        if (!auth.getAuthorities().toArray()[0].toString().equals("ADMIN")) throw new CustomApiException(ErrorCode.FORBIDDEN_USER);
+
+        CommentDTO.CommonRequest commonDto = CommentDTO.CommonRequest.builder()
+                .commentId(commentId)
+                .build();
+
+        CommentDTO.CommonResponse responseBody = commentService.deleteComment(commonDto);
 
         ResponseWrapper response = ResponseWrapper.builder()
                 .code(200)
