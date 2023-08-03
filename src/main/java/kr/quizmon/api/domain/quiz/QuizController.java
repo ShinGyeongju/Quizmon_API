@@ -14,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,9 +37,22 @@ public class QuizController {
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
         }
 
+        // 유효성 검사
         if (!VALID_LIMIT_TIME.contains(requestDto.getLimitTime())) {
             throw new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 제한 시간입니다.");
         }
+        Arrays.stream(requestDto.getQnaArray()).forEach(qna -> {
+            Arrays.stream(qna.getOptionArray()).forEach(option -> {
+                if (option.contains("  ") || option.startsWith(" ") || option.endsWith(" ")) {
+                    throw new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 보기 배열입니다");
+                }
+            });
+            Arrays.stream(qna.getAnswerArray()).forEach(answer -> {
+                if (answer.contains("  ") || answer.startsWith(" ") || answer.endsWith(" ")) {
+                    throw new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 정답 배열입니다.");
+                }
+            });
+        });
 
         // 인가된 사용자 id 설정
         requestDto.setUserId(auth.getName());
@@ -67,9 +81,22 @@ public class QuizController {
             throw new CustomApiException(ErrorCode.INVALID_VALUE, error.getDefaultMessage());
         }
 
+        // 유효성 검사
         if (!VALID_LIMIT_TIME.contains(requestDto.getLimitTime())) {
             throw new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 제한 시간입니다.");
         }
+        Arrays.stream(requestDto.getQnaArray()).forEach(qna -> {
+            Arrays.stream(qna.getOptionArray()).forEach(option -> {
+                if (option.contains("  ") || option.startsWith(" ") || option.endsWith(" ")) {
+                    throw new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 보기 배열입니다");
+                }
+            });
+            Arrays.stream(qna.getAnswerArray()).forEach(answer -> {
+                if (answer.contains("  ") || answer.startsWith(" ") || answer.endsWith(" ")) {
+                    throw new CustomApiException(ErrorCode.INVALID_VALUE, "유효하지 않은 정답 배열입니다.");
+                }
+            });
+        });
 
         // 인가된 사용자 id 설정
         requestDto.setUserId(auth.getName());
